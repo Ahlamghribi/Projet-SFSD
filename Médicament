@@ -284,7 +284,7 @@ void recherche (int cle,FILE *F,entete e)
         {
             bs=i-1;
         }
-        else
+        else ahlam
         {
             bi=i+1;
         }
