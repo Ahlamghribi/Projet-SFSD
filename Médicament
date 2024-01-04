@@ -1,39 +1,323 @@
-typedef struct {
-    char nom[50];
-    int qte;
-    float prix;
-    int reference;
-} Medicament;
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+//structure de l'nregistremment date
 
-typedef struct {
-    char tab[50];  
-    int nb;
-} Bloc;
 
-void suppression(int c, char *nomfich) {
-    bool trouv;
-    int i, j;
-    Medicament medicament;
+typedef struct date
+{
+    int anne;
+    int mois;
+    int jour;
 
-    Rech(c, nomfich, &trouv, &i, &j);
-    if (trouv) {
-        FILE *F = fopen(nomfich, "rb+");
-        if (F == NULL) {
-            perror("Erreur lors de l'ouverture du fichier");
-            return;
+}date;
+
+//structure de l'entet
+typedef struct entete
+{
+ int nbbloc;//nobre de bloc total
+ int nbenreg;//nb de enregistrement total
+
+}entete;
+
+//structure de l'eregistrement medicamment
+
+
+
+typedef struct medicamment{
+   int reference; // le champ utilisé comme clé de recherche et pour ordonner le fichier
+   float prix;
+   date expiration;
+   date fabrication;
+   char ingredient[50];// le champ utiliser pour la taille variable
+   int quantite;
+}medicamment;
+
+// la structure de block
+
+
+typedef struct bloc
+{
+   char buff[500];
+   int nbe ; //nobre d'enregistement dans le bloc (dans la case 0 de le bloc)
+}bloc;
+
+void entet (FILE *F,int i,entete e)
+ {
+    if(i==1)
+    {
+        return e.nbbloc;
+    }
+    if(i==2)
+    {
+        return e.nbenreg;
+    }
+ }
+
+ void ref (int tab[4])
+ {
+     int s=0;
+   for (int i=0;i<=3;i++)
+   {
+       s=s*10+tab[i];
+   }
+   return s;
+ }
+
+
+void recherche (int cle,FILE *F,entete e)
+{
+  F = fopen("sfsd.txt","rb+");
+
+    int bi = 0;
+ // int bs = entet(F,1,e);
+    int bs = e.nbbloc;
+    bool trouve=0;
+    bool stop=0;
+    int tab[4];
+    int i=1;
+    int cmp=0;
+    int k=1;
+    int j;
+    int a,z,d;
+    int inf,sup;
+    bloc buffer;
+        while(bi<bs && !trouve && !stop)
+        {
+          i=(bi+bs)/2;
+          fseek(F,i*500,SEEK_SET);
+          fread(buffer.buff,sizeof(char),500,F);
+        while(cmp<buffer.nbe-1)
+        {
+            if (buffer.buff[k]=='#')//caractere qui separe les enregistrements
+            {
+                cmp=cmp+1;
+            }
+            k=k+1;
         }
+        // calcule de reference de enregistrement 1
+      for (int l=0;l<=3;l++)
+        {
+         tab[l]=buffer.buff[l+1];
+        }
+    a=ref(tab);// a c'est la reference de l'enregistrement 1
 
-        Bloc buf;
-        fseek(F, i * sizeof(Bloc), SEEK_SET);
-        fread(&buf, sizeof(Bloc), 1, F);
- 
-        buf.tab[j] = '\0'; // Marquer le nom comme vide
-        buf.nb--;
+       for (int l=0;l<=3;l)
+        {
+         tab[l]=buffer.buff[k];
+         k=k+1;
+        }
+    z=ref(tab);// c'est la reference de le dernnier enregistrement dans le bloc
 
-        fseek(F, i * sizeof(Bloc), SEEK_SET);
-        fwrite(&buf, sizeof(Bloc), 1, F);
+    if(cle>=a && cle<=z)
+    {
+        inf=1;
+        sup=buffer.nbe;
 
-        fclose(F);
+
+    while(inf<sup && !trouve)
+    {
+        j=(inf+sup)/2;
+        cmp=1;
+        k=1;
+        while(cmp<j)
+        {
+            if(buffer.buff[k]='#')//caractere de fin de enregistrement
+            {
+                cmp=cmp+1;
+            }
+         k=k+1;
+        }
+         for (int l=0;l<=3;l)
+
+         {
+             tab[l]=buffer.buff[k];
+             k=k+1;
+         }
+
+         d=ref(tab);// la reference de l'enregistrement millieu
+         if(d==cle)
+         {
+             trouve= 1;
+         }
+         else
+         {
+           if(cle<d)
+           {
+               sup=sup-1;
+           }
+           else
+           {
+               inf=inf+1;
+           }
+         }
+
+    }
+
+    if(inf>=sup)
+    {
+        j=inf;
+    }
+    stop=1;
+    }
+    else
+    {
+        if(val<z)
+        {
+            bs=i-1;
+        }
+        else
+        {
+            bi=i+1;
+        }
     }
 }
- 
+if(bi>bs)
+{
+    i=bi;
+    j=1;
+}
+fclose(F);
+return trouve,i,j;
+}
+
+
+
+void recherche (int cle,FILE *F,entete e)
+{
+  F = fopen("sfsd.txt","rb+");
+
+    int bi = 0;
+ // int bs = entet(F,1,e);
+    int bs = e.nbbloc;
+    bool trouve=0;
+    bool stop=0;
+    int tab[4];
+    int i=1;
+    int cmp=0;
+    int k=1;
+    int j;
+    int a,z,d;
+    int inf,sup;
+    bloc buffer;
+        while(bi<bs && !trouve && !stop)
+        {
+          i=(bi+bs)/2;
+          fseek(F,i*500,SEEK_SET);
+          fread(buffer.buff,sizeof(char),500,F);
+        while(cmp<buffer.nbe-1)
+        {
+            if (buffer.buff[k]=='#')//caractere qui separe les enregistrements
+            {
+                cmp=cmp+1;
+            }
+            k=k+1;
+        }
+        // calcule de reference de enregistrement 1
+      for (int l=0;l<=3;l++)
+        {
+         tab[l]=buffer.buff[l+1];
+        }
+    a=ref(tab);// a c'est la reference de l'enregistrement 1
+
+       for (int l=0;l<=3;l)
+        {
+         tab[l]=buffer.buff[k];
+         k=k+1;
+        }
+    z=ref(tab);// c'est la reference de le dernnier enregistrement dans le bloc
+
+    if(cle>=a && cle<=z)
+    {
+        inf=1;
+        sup=buffer.nbe;
+
+
+    while(inf<sup && !trouve)
+    {
+        j=(inf+sup)/2;
+        cmp=1;
+        k=1;
+        while(cmp<j)
+        {
+            if(buffer.buff[k]='#')//caractere de fin de enregistrement
+            {
+                cmp=cmp+1;
+            }
+         k=k+1;
+        }
+         for (int l=0;l<=3;l)
+
+         {
+             tab[l]=buffer.buff[k];
+             k=k+1;
+         }
+
+         d=ref(tab);// la reference de l'enregistrement millieu
+         if(d==cle)
+         {
+             trouve= 1;
+         }
+         else
+         {
+           if(cle<d)
+           {
+               sup=sup-1;
+           }
+           else
+           {
+               inf=inf+1;
+           }
+         }
+
+    }
+
+    if(inf>=sup)
+    {
+        j=inf;
+    }
+    stop=1;
+    }
+    else
+    {
+        if(val<z)
+        {
+            bs=i-1;
+        }
+        else
+        {
+            bi=i+1;
+        }
+    }
+}
+if(bi>bs)
+{
+    i=bi;
+    j=1;
+}
+fclose(F);
+return trouve,i,j;
+}
+
+buffer[40+10]=buffer[40]
+
+
+enr 7 :17
+9 : 40
+dernier enre 10: 50,57
+taille enre 6 inserer :10
+
+
+
+
+
+
+int main()
+{
+  FILE *F;
+  char buff[500]
+  F = fopen("medicament.txt", "rb+");
+
+
+    return 0;
+}
