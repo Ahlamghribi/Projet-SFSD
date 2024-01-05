@@ -93,7 +93,7 @@ bool cbn =true ;
                 cmp=cmp+1;
             }
             k=k+1;}
- if(k<500){ /* k la taille totale de bloc i*/
+ if(k+taille(x)<500){ /* k la taille totale de bloc i*/
      k=k+taille(x);
      buffer.buff[k]=x;
        continu=false;}
@@ -109,7 +109,7 @@ bool cbn =true ;
             }
             k=k+1; /* k la taille de bloc i+1 */
           }
-  if(k>500){
+  if(k+taille(x)>=500){
       i=i+1;}
   else{
 k=1;
