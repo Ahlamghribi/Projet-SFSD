@@ -1,39 +1,84 @@
+
 typedef struct {
-    char nom[50];
+    int jour, mois, annee;
+} date;
+
+typedef struct {
+    char nom[20];
     int qte;
     float prix;
     int reference;
+    char ingredient[30];
+    struct date datefabr, dateexp;
+
 } Medicament;
 
 typedef struct {
-    char tab[50];  
+    char tab[999];
     int nb;
 } Bloc;
 
-void suppression(int c, char *nomfich) {
-    bool trouv;
-    int i, j;
-    Medicament medicament;
+int main() {
+    int n;  
+    char y;  
+    int reference ;
 
-    Rech(c, nomfich, &trouv, &i, &j);
-    if (trouv) {
-        FILE *F = fopen(nomfich, "rb+");
-        if (F == NULL) {
-            perror("Erreur lors de l'ouverture du fichier");
-            return;
+    FILE *fichier = fopen("medicaments.dat", "wb+");
+    printf("combien de medicaments vous voulez inserer : ?");
+    scanf("%d", &n);
+    
+int c;
+    for (int i = 0; i < n; i++) {
+        Medicament med;
+        printf("donne moi les informations de votre %d medicament \n", i + 1);
+        printf("le nom : ");
+        scanf("%s", med.nom); 
+        
+        printf("la reference : ");
+        scanf("%d", &med.reference); 
+        printf("la quantite de medicaments : ");
+        scanf("%d", &med.qte); 
+        printf("le prix de medicaments : ");
+        scanf("%f", &med.prix); 
+        printf("la date de fabrication (jour mois annee) : ");
+        scanf("%d %d %d", &med.datefabr.jour, &med.datefabr.mois, &med.datefabr.annee);  
+        printf("la date de l'expiration (jour mois annee) : ");
+        scanf("%d %d %d", &med.dateexp.jour, &med.dateexp.mois, &med.dateexp.annee);  
+        printf("combien d'ingredients contient ce medicament ?");
+        scanf("%d",&c);
+        for (int i=0;i<c;i++)
+        {
+            printf("donne moi l'ingredient numero :%d",i+1);
+            scanf("%s",&med.ingredient);
+        }
+        inserer(med,fichier); 
+    }
+
+    printf("donner moi la reference du medicament que vous voulez trouver : ");
+    scanf("%d", &reference);
+ 
+    if (Recherche(reference, "medicaments.dat")) {
+        printf("le medicament existe ");
+    } else {
+        printf("le medicament n'existe pas");
+
+        printf("est ce que vous voulez l'inserer , Y/N : ");
+        scanf(" %c", &y); 
+
+        if (y == 'Y') { 
+            inserer(medicament);
         }
 
-        Bloc buf;
-        fseek(F, i * sizeof(Bloc), SEEK_SET);
-        fread(&buf, sizeof(Bloc), 1, F);
- 
-        buf.tab[j] = '\0'; // Marquer le nom comme vide
-        buf.nb--;
-
-        fseek(F, i * sizeof(Bloc), SEEK_SET);
-        fwrite(&buf, sizeof(Bloc), 1, F);
-
-        fclose(F);
+        
     }
+        printf("donner moi la reference du medicament que vous voulez le enlever : ");
+        scanf("%d", &reference);
+ 
+        Suppression(reference, "medicaments.dat");
+        fclose(fichier);
+
+    return 0;
 }
+
+
  
