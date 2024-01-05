@@ -22,7 +22,7 @@ typedef struct {
     int nbrenrg, nbbloc;  
 } entete; 
  
-void Suppression(int reference, char nomfich) {
+void Suppression(int reference, char *nomfich) {
     FILE *f;
     bool trouv;
     struct entete t;
@@ -40,22 +40,21 @@ void Suppression(int reference, char nomfich) {
             q++;
             cmp++;
         }
-       
-        k= q + 1; 
-        while(buf.tab[k]!='#'){
-            while (buf.tab[j] != '#') {
-                buf.tab[j] = buf.tab[k];
-                k++;
-                j++;
-            }
+        
+        while(!feof(fichier))
+        {
+           
+            while (buf.tab[j + cmp] != '#') {
+            buf.tab[j] = buf.tab[j + cmp];
             j++;
-            
-        }
-
-        buf.nb --;
-
+        } j++;
         fseek(f, i * sizeof(Bloc), SEEK_SET);
         fwrite(&buf, sizeof(Bloc), 1, f);
+ 
+        }
+        buf.tab[j] = '#';
+        buf.nb --;
+
     }
 
     fclose(f);
