@@ -1,118 +1,80 @@
-void recherche (int cle,FILE *F,entete e,int *i,int *j,bool *trouve)
-{
-  F = fopen("sfsd.txt","rb+");
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
 
-    int bi = 0;
- // int bs = entet(F,1,e);
-    int bs = e.nbbloc;
-    bool stop=0;
-    int t[4];
-    int cmp=0;
-    int k=1;
-    int a,z,d;
-    int inf,sup;
-    bloc buffer;
-    i=1;
-    j=1;
-    *trouve=false;
-while(bi<=bs && !*trouve && !stop)
-{
-   *i=(bi+bs)/2;
-   fseek(F,*i*500,SEEK_SET);
-   fread(buffer.tab,sizeof(char),500,F);
-   // fread(&buffer,sizeof(char),500,F);
-        while(cmp<buffer.tab[0]-1)
-        {
-            if (buffer.tab[k]=='#')//caractere qui separe les enregistrements
-            {
-                cmp=cmp+1;
-            }
-            k=k+1;
-        }
-        // calcule de reference de enregistrement 1
-      for (int l=0;l<=3;l++)
-        {
-         t[l]=buffer.tab[l+1];
-        }
-    a=ref(t);// a c'est la reference de l'enregistrement 1
+typedef struct {
+    int jour, mois, annee;
+} date;
 
-       for (int l=0;l<=3;l)
-        {
-         t[l]=buffer.tab[k];
-         k=k+1;
-        }
-    z=ref(t);// c'est la reference de le dernnier enregistrement dans le bloc
+typedef struct {
+    char nom[20];
+    int qte;
+    float prix;
+    int reference;
+    char ingredient[30];
+    struct date datefabr, dateexp;
 
-    if(cle>=a && cle<=z)
-    {
-        inf=1;
-        sup=buffer.nb;
+} Medicament;
+
+typedef struct {
+    char tab[500];
+    int nb;
+} Bloc;
+
+typedef struct {
+    int nbrenrg, nbbloc;
+} entete;
 
 
-    while(inf<sup && !trouve)
-    {
-        *j=(inf+sup)/2;
-        cmp=1;
-        k=1;
-        while(cmp<*j)
-        {
-            if(buffer.tab[k]='#')//caractere de fin de enregistrement
-            {
-                cmp=cmp+1;
-            }
-         k=k+1;
-        }
-         for (int l=0;l<=3;l)
+int taillenrg(Bloc buf, int j) {
+    int cmp = 1;   
 
-         {
-             t[l]=buffer.tab[k];
-             k=k+1;
-         }
-
-         d=ref(t);// la reference de l'enregistrement millieu
-         if(d==cle)
-         {
-             *trouve= true;
-         }
-         else
-         {
-           if(cle<d)
-           {
-               //sup=sup-1;
-               sup=j-1;
-           }
-           else
-           {
-              // inf=inf+1;
-              inf =*j+1;
-           }
-         }
-
+    while (buf.tab[j] != '#') {
+        j++;
+        cmp++;
     }
 
-    if(inf>=sup)
-    {
-        *j=inf;
-    }
-    stop=1;
-    }
-    else
-    {
-        if(cle<a)
-        {
-            bs=*i-1;
-        }
-        else
-        {
-            bi=*i+1;
-        }
-    }
+    return cmp;
 }
-if(bi>bs)
-{
-    *i=bi;
-    *j=1;
+
+int taillebloc(Bloc buf) {
+    int j = 1;   
+
+    for (int i = 0; i < buf.nb; i++) {
+        j = j + taillenrg(buf, j);
+        j++;   
+    }
+
+    return j;
 }
-fclose(F);
-}
+
+
+void Suppression(int reference, FILE* fichier) {
+    FILE *f;
+    bool trouv;
+    struct entete t;
+    int i, j;
+    Bloc buf;
+
+    f = fopen(nomfich, "rb+");
+
+    Rech(reference, nomfich, trouv, i, j); 
+    int cmp = taillenrg(buf.tab, j);
+
+    if (trouv) {
+        fseek(f, i * sizeof(Bloc), SEEK_SET);
+        fread(&buf, sizeof(Bloc), 1, f);
+
+        while (!feof(fichier)) {
+            if (taillebloc(buf) + cmp <= 500) {
+                while (buf.tab[j + cmp] != '#') {
+                    buf.tab[j] = buf.tab[j + cmp];
+                    j++;
+                }
+                j++;
+            } else { 
+                while (buf.tab[j + cmp] != '#') { 
+                    buf.tab[j] = '*';  
+                    j++;
+                }
 
