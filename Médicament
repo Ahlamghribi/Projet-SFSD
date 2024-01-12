@@ -138,13 +138,13 @@ int rechercheIndex (int cle,index[1000],entet e)
   while ( gauche <= droite)
    {
       milieu = (gauche + droite)/2;
-    if (t[milieu] == v)
+    if (index[milieu].reference == cle)
     {
        return (milieu);
     }
     else
      {
-    if (t[milieu] > cle)
+    if (index[milieu].reference > cle)
         {
         droite = milieu - 1;
         }
