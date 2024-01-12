@@ -91,15 +91,12 @@ void Suppression(int reference, FILE* fichier) {
 }
 
 // suppression en utilisant l'index
-
-
 typedef struct {
  
 int reference ,cas,bloc;
 
 }index;
-
-//recherche retourner le i : num de enregistrement
+  
 void Suppression(int reference, FILE* fichier,index index[1000],entete e) {
     FILE *f; int i;//num de bloc 
     Bloc buf;
@@ -110,71 +107,61 @@ void Suppression(int reference, FILE* fichier,index index[1000],entete e) {
     
     fseek(f,i* sizeof(Bloc), SEEK_SET);
     fread(&buf, sizeof(Bloc), 1, f); // averifier 
-    int cmp = taillenrg(buf.tab,j); 
-    bool decalage=true;
+    int cmp = taillenrg(buf.tab,j);  
         while (!feof(fichier)) 
         { 
             if (taillebloc(buf) +taillenrg(buf.tab,j+cmp+1)-taillenrg(buf.tab,j)> 500) { //est ce que n9dro ndiro enregistrement jdid f placeto wyekfina place 
-                nospace=true;
-                fseek(f,i* sizeof(Bloc), SEEK_SET);
+                fseek(f,(i+1)* sizeof(Bloc), SEEK_SET); //acceder a le nouveau bloc
                 fread(&buf, sizeof(Bloc), 1, f); 
                 
-                int o=j+cmp;
+                 //suppression logique 
                 while (j<=500) {
                     buf.tab[j] = '*';
                     j++; 
                 }
                 j++;
-               
-                if (j!=o)
+               // si le debut de l'enregistrement n'est pas dans le debut de bloc et il y'a de l'espace on le décale
+                if (j!=j+cmp+1)
                 {
                 
                         while(buf.tab[j+cmp]!='#')
                     {
-                        tab[j]=tab[o];
+                        buf.tab[j]=buf.tab[j+cmp];
                     j++;
                     }
                     j++;
                     buf.tab[j]='#';
+                } //update tableau d'index 
+                        index[l]=index[l+1];
+                        index[l].cas=j;
+//décalage
+                 for (int l=r+1;l<e.nbrenrg;l++)
+                {
+                         index[l]=index[l+1];
                 }
                  
+                e.nbrenrg--;       
             }
             
-    else
+    else  //il y'a de l'espace 
         {
-                nospace=false;
+                //decalage 
                 while (buf.tab[j+cmp] != '#') {
                     buf.tab[j] = buf.tab[j+cmp];
                     j++; 
                 }
-                // decalage de l'index 
-                
+                 
+                buf.tab[j]='#';
+                //modification du tableau d'index 
                 for (int l=r;l<e.nbrenrg;l++)
-                {
-                    if (nospace==true)
-                    {
-                        index[l].bloc=index[l+1].bloc;
-                        index[l].cas=index[l+1].cas;
-                       
-                    }
-                    else 
-                    {
+                { 
                         index[l].bloc--;
-                        index[l].cas=j;
-                    }
+                        index[l].cas=j; 
                 }
                  
                 e.nbrenrg--;
                 
                 j=j+cmp;
-    
-                i++;
-                fseek(f,i* sizeof(Bloc), SEEK_SET);
-                fread(&buf, sizeof(Bloc), 1, f);
-                
-                
-                
-                
             }  
             
             }
@@ -190,8 +177,6 @@ void Suppression(int reference, FILE* fichier,index index[1000],entete e) {
 
     fclose(f);
 }
-
-
 
 void afficher(int j, Medicament med)
 {
