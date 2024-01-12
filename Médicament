@@ -2,6 +2,12 @@
 int main() {
     char choix;
     int reference;
+ index I[1000];
+    //initialisation de l'entet
+    e entet;
+    e.nbbloc=0
+    e.nbenregistrement=0;
+
 
     FILE* fichier = fopen("medicaments.dat", "wb+");
     Bloc buf;   
