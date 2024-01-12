@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-//structure de l'nregistremment date
 typedef struct date
 {
     int anne;
@@ -15,7 +14,7 @@ typedef struct entete
  int nbenreg;//nb de enregistrement total
 }entete;
 
-//structure de l'eregistrement medicamment
+
 typedef struct medicamment{
    int reference; // le champ utilisé comme clé de recherche et pour ordonner le fichier
    float prix;
@@ -24,8 +23,6 @@ typedef struct medicamment{
    char ingredient[50];// le champ utiliser pour la taille variable
    int quantite;
 }medicamment;
-
-// la structure de block
 
 
 typedef struct bloc
@@ -61,10 +58,10 @@ int t;
 int y;
 bool trouve ;
  char x[500];
-void insertion (FILE *F,medicamment eng ){
- int cle =ref(eng.reference) ; /*ouissal wch ndkhl argumnt hna*/
-recherche (cle,FILE *F,entete e); /*erreur tabe3 lcle mm hna nsksi ouissal*/
-if (!trouve){ /* cet enregistrement n existe pas */
+void insertion (FILE *F,xx ,entete e){
+ int cle =ref(eng.reference) ; 
+recherche (cle,FILE *F,entete e); 
+if (!trouve){ 
    F = fopen("sfsd.txt","rb+");
    bool continu= true ;
     while (continu && i <= entet(F, 1)) { /* i cest le bloc ou on va inserer eng par la fonction rech */
