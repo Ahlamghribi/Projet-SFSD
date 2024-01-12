@@ -90,6 +90,109 @@ void Suppression(int reference, FILE* fichier) {
     fclose(f);
 }
 
+// suppression en utilisant l'index
+
+
+typedef struct {
+ 
+int reference ,cas,bloc;
+
+}index;
+
+//recherche retourner le i : num de enregistrement
+void Suppression(int reference, FILE* fichier,index index[1000],entete e) {
+    FILE *f; int i;//num de bloc 
+    Bloc buf;
+    f = fopen(nomfich, "rb+");
+    int r=rechercheIndex (int reference,index[1000],entete e); // numero enregistrement
+    int j=index[r].cas;
+    int i=index[r].bloc;
+    
+    fseek(f,i* sizeof(Bloc), SEEK_SET);
+    fread(&buf, sizeof(Bloc), 1, f); // averifier 
+    int cmp = taillenrg(buf.tab,j); 
+    bool decalage=true;
+        while (!feof(fichier)) 
+        { 
+            if (taillebloc(buf) +taillenrg(buf.tab,j+cmp+1)-taillenrg(buf.tab,j)> 500) { //est ce que n9dro ndiro enregistrement jdid f placeto wyekfina place 
+                nospace=true;
+                fseek(f,i* sizeof(Bloc), SEEK_SET);
+                fread(&buf, sizeof(Bloc), 1, f); 
+                
+                int o=j+cmp;
+                while (j<=500) {
+                    buf.tab[j] = '*';
+                    j++; 
+                }
+                j++;
+               
+                if (j!=o)
+                {
+                
+                        while(buf.tab[j+cmp]!='#')
+                    {
+                        tab[j]=tab[o];
+                    j++;
+                    }
+                    j++;
+                    buf.tab[j]='#';
+                }
+                 
+            }
+            
+    else
+        {
+                nospace=false;
+                while (buf.tab[j+cmp] != '#') {
+                    buf.tab[j] = buf.tab[j+cmp];
+                    j++; 
+                }
+                // decalage de l'index 
+                
+                for (int l=r;l<e.nbrenrg;l++)
+                {
+                    if (nospace==true)
+                    {
+                        index[l].bloc=index[l+1].bloc;
+                        index[l].cas=index[l+1].cas;
+                       
+                    }
+                    else 
+                    {
+                        index[l].bloc--;
+                        index[l].cas=j;
+                    }
+                }
+                 
+                e.nbrenrg--;
+                
+                j=j+cmp;
+    
+                i++;
+                fseek(f,i* sizeof(Bloc), SEEK_SET);
+                fread(&buf, sizeof(Bloc), 1, f);
+                
+                
+                
+                
+            }  
+            
+            }
+           
+           buf.tab[j+1] = '#';
+        }
+
+        fseek(f, i * sizeof(Bloc), SEEK_SET);
+        fwrite(&buf, sizeof(Bloc), 1, f);
+
+       
+    }
+
+    fclose(f);
+}
+
+
+
 void afficher(int j, Medicament med)
 {
     while (buf.tab[j] != '#')
