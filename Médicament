@@ -47,8 +47,7 @@ int taillebloc(Bloc buf) {
 
     return j;
 }
-
-
+ 
 void Suppression(int reference, FILE* fichier) {
     FILE *f;
     bool trouv;
@@ -59,27 +58,27 @@ void Suppression(int reference, FILE* fichier) {
     f = fopen(nomfich, "rb+");
 
     Rech(reference, nomfich, trouv, i, j);
-    int cmp = taillenrg(buf.tab, j);
-
+    int cmp = taillenrg(buf.tab,j);  
     if (trouv) {
         fseek(f, i * sizeof(Bloc), SEEK_SET);
         fread(&buf, sizeof(Bloc), 1, f);
 
         while (!feof(fichier)) {
-            if (taillebloc(buf) + cmp <= 500) {
-                while (buf.tab[j + cmp] != '#') {
-                    buf.tab[j] = buf.tab[j + cmp];
-                    j++;
-                }
-                j++;
+                
+            if (taillebloc(buf) +taillenrg(buf.tab,j+cmp+1)-taillenrg(buf.tab,j) <= 500) { //est ce que n9dro ndiro enregistrement jdid f placeto wyekfina place 
+                while (buf.tab[cmp] != '#') {
+                    buf.tab[j] = buf.tab[cmp];
+                    j++; cmp++;
+                } 
+                j=j+cmp;
             } else {
-                while (buf.tab[j + cmp] != '#') {
+                while (buf.tab[j+cmp] != '#') {
                     buf.tab[j] = '*';
-                    j++;
+                    j++; 
                 }
             }
 
-            buf.tab[j] = '#';
+            buf.tab[j+1] = '#';
         }
 
         fseek(f, i * sizeof(Bloc), SEEK_SET);
