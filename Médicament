@@ -27,7 +27,7 @@ typedef struct {
 
 
 int taillenrg(Bloc buf, int j) {
-    int cmp = 1;   
+    int cmp = 1;
 
     while (buf.tab[j] != '#') {
         j++;
@@ -38,11 +38,11 @@ int taillenrg(Bloc buf, int j) {
 }
 
 int taillebloc(Bloc buf) {
-    int j = 1;   
+    int j = 1;
 
     for (int i = 0; i < buf.nb; i++) {
         j = j + taillenrg(buf, j);
-        j++;   
+        j++;
     }
 
     return j;
@@ -58,7 +58,7 @@ void Suppression(int reference, FILE* fichier) {
 
     f = fopen(nomfich, "rb+");
 
-    Rech(reference, nomfich, trouv, i, j); 
+    Rech(reference, nomfich, trouv, i, j);
     int cmp = taillenrg(buf.tab, j);
 
     if (trouv) {
@@ -72,9 +72,113 @@ void Suppression(int reference, FILE* fichier) {
                     j++;
                 }
                 j++;
-            } else { 
-                while (buf.tab[j + cmp] != '#') { 
-                    buf.tab[j] = '*';  
+            } else {
+                while (buf.tab[j + cmp] != '#') {
+                    buf.tab[j] = '*';
                     j++;
                 }
+            }
 
+            buf.tab[j] = '#';
+        }
+
+        fseek(f, i * sizeof(Bloc), SEEK_SET);
+        fwrite(&buf, sizeof(Bloc), 1, f);
+
+        buf.nb--;
+    }
+
+    fclose(f);
+}
+
+void afficher(int j, Medicament med)
+{
+    while (buf.tab[j] != '#')
+    {
+        while (buf.tab[j] != '$')
+        {
+            printf("Le nom de medicaments : ");
+            for (int i = 0; i < sizeof(med.nom); i++)
+                printf("%c", med.nom[i]);
+            printf("\n");
+            j++;
+        }
+
+        while (buf.tab[j] != '$')
+        {
+            printf("La quantite de medicaments : ");
+            for (int i = 0; i < sizeof(med.qte); i++)
+                printf("%c", med.qte[i]);
+            printf("\n");
+            j++;
+        }
+
+        while (buf.tab[j] != '$')
+        {
+            printf("Le prix de medicaments : ");
+            for (int i = 0; i < sizeof(med.prix); i++)
+                printf("%c", med.prix[i]);
+            printf("\n");
+            j++;
+        }
+
+        while (buf.tab[j] != '$')
+        {
+            printf("La date de fabrication (jour mois annee) : ");
+            for (int i = 0; i < sizeof(med.datefabr); i++)
+             buf.tab[j] = '#';
+             printf("%c", med.datefabr[i]);
+            printf("\n");
+            j++;
+        }
+
+        while (buf.tab[j] != '$')
+        {
+            printf("La date de l'expiration (jour mois annee) : ");
+            for (int i = 0; i < sizeof(med.dateexp); i++)
+                printf("%c", med.dateexp[i]);
+            printf("\n");
+            j++;
+        }
+    }
+}
+
+void tochar(char ch[500], Medicament med)
+{
+    int i = 0;
+
+    for (int j = 0; j < sizeof(med.nom); j++)
+    {
+        ch[i] = med.nom[j];
+        i++;
+    }
+    ch[i] = '$';
+    i++;
+
+    sprintf(&ch[i], "%d", med.qte);
+    i =i+ snprintf(NULL, 0, "%d", med.qte);
+
+    ch[i] = '$';
+    i++;
+
+    sprintf(&ch[i], "%d", med.reference);
+    i += snprintf(NULL, 0, "%d", med.reference);
+    ch[i] = '$';
+    i++;
+    sprintf(&ch[i], "%f", med.prix);
+    i += snprintf(NULL, 0, "%f", med.prix);
+    ch[i] = '$';
+    i++;
+
+    sprintf(&ch[i], "%d %d %d", med.datefabr.jour, med.datefabr.mois, med.datefabr.annee);
+    i += snprintf(NULL, 0, "%d %d %d", med.datefabr.jour, med.datefabr.mois, med.datefabr.annee);
+    ch[i] = '$';
+    i++;
+
+    sprintf(&ch[i], "%d %d %d", med.dateexp.jour, med.dateexp.mois, med.dateexp.annee);
+    i += snprintf(NULL, 0, "%d %d %d", med.dateexp.jour, med.dateexp.mois, med.dateexp.annee);
+    ch[i] = '$';
+    i++;
+
+    ch[i] = '#';
+}
