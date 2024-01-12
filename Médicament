@@ -1,52 +1,5 @@
-typedef struct date
-{
-    int anne;
-    int mois;
-    int jour;
-
-}date;
-
-//structure de l'entet
-typedef struct entete
-{
- int nbbloc;//nobre de bloc total
- int nbenreg;//nb de enregistrement total
-
-}entete;
-
-//structure de l'eregistrement medicamment
 
 
-
-typedef struct medicamment{
-   int reference; // le champ utilisé comme clé de recherche et pour ordonner le fichier
-   float prix;
-   date expiration;
-   date fabrication;
-   char ingredient[50];// le champ utiliser pour la taille variable
-   int quantite;
-}medicamment;
-
-// la structure de block
-
-
-typedef struct bloc
-{
-   char buff[500];
-   int nbe ; //nobre d'enregistement dans le bloc (dans la case 0 de le bloc)
-}bloc;
-
-void entet (FILE *F,int i,entete e)
- {
-    if(i==1)
-    {
-        return e.nbbloc;
-    }
-    if(i==2)
-    {
-        return e.nbenreg;
-    }
- }
 
  void ref (int tab[4])
  {
@@ -175,4 +128,31 @@ if(bi>bs)
 }
 fclose(F);
 return trouve,i,j;
+}
+// fonction recherche avec l'index
+
+int rechercheIndex (int cle,index[1000],entet e)
+{
+ int  gauche = 0;
+ int  droite = e.nbenreg-1;
+  while ( gauche <= droite)
+   {
+      milieu = (gauche + droite)/2;
+    if (t[milieu] == v)
+    {
+       return (milieu);
+    }
+    else
+     {
+    if (t[milieu] > cle)
+        {
+        droite = milieu - 1;
+        }
+    else
+        {
+        gauche = milieu + 1;
+        }
+     }
+   }
+    return (droite);
 }
