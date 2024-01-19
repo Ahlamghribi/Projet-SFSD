@@ -52,34 +52,89 @@ void entet (FILE *F,int i,entete e)
    }
    return s;
  }
+void tochar(char ch[500], Medicament med)
+{
+    int i = 0;
+
+    for (int j = 0; j < sizeof(med.nom); j++)
+    {
+        ch[i] = med.nom[j];
+        i++;
+    }
+    ch[i] = '$';
+    i++;
+
+    sprintf(&ch[i], "%d", med.qte);
+    i =i+ snprintf(NULL, 0, "%d", med.qte);
+
+    ch[i] = '$';
+    i++;
+
+    sprintf(&ch[i], "%d", med.reference);
+    i += snprintf(NULL, 0, "%d", med.reference);
+    ch[i] = '$';
+    i++;
+    sprintf(&ch[i], "%f", med.prix);
+    i += snprintf(NULL, 0, "%f", med.prix);
+    ch[i] = '$';
+    i++;
+
+    sprintf(&ch[i], "%d %d %d", med.datefabr.jour, med.datefabr.mois, med.datefabr.annee);
+    i += snprintf(NULL, 0, "%d %d %d", med.datefabr.jour, med.datefabr.mois, med.datefabr.annee);
+    ch[i] = '$';
+    i++;
+
+    sprintf(&ch[i], "%d %d %d", med.dateexp.jour, med.dateexp.mois, med.dateexp.annee);
+    i += snprintf(NULL, 0, "%d %d %d", med.dateexp.jour, med.dateexp.mois, med.dateexp.annee);
+    ch[i] = '$';
+    i++;
+
+    ch[i] = '#';
+}
+
+
+int  taillenrg(Bloc buf, int j) {
+    int cmp = 1;
+
+    while (buf.tab[j] != '#') {
+        j++;
+        cmp++;
+    }
+
+    return cmp;
+}
+
+
+
+
+
 int cmp;
 int k;
 int t;
 int y;
 bool trouve ;
  char x[500];
-void insertion (FILE *F,xx ,entete e){
- int cle =ref(eng.reference) ; 
-recherche (cle,FILE *F,entete e); 
+void insertion (FILE *F,medicament eng ,entete e){
+recherche (eng.ref,FILE *F,entete e,i,j,trouve); 
 if (!trouve){ 
    F = fopen("sfsd.txt","rb+");
+char ch[500]=tochar(char ch[500], Medicament eng)
    bool continu= true ;
-    while (continu && i <= entet(F, 1)) { /* i cest le bloc ou on va inserer eng par la fonction rech */
-LireDir(F, int i,buffer); /* on copie  tous les engs de ce bloc dans buffer  hna nktb buufer.bufff*/
+    while (continu && i <= e(F, 1)jjjj) { /* i cest le bloc ou on va inserer eng par la fonction rech */
+fseek(
+ fread(buffer, sizeof(i), nbe, F); /* on copie  tous les engs de ce bloc dans buffer  hna nktb buufer.bufff*/
+tochar
 x=buffer.buff[buffer.nbe]; /* on copie dernier eng dans une varioable temp*/
-j=dernier caractere prd ;
-cmp=1;
-while( cmp<buffer.nbe-1)
-        {
-            if (buffer.buff[k]=='#')
-            {
-                cmp=cmp+1;
-            }
-            t=t+1;}
-while(t>j)  { /* t = position dernier car dans dernier eng > j positionc car dernier prd */
+int prd =j;
+while( j=='#'){
+t=t+1;
+j=j+1;}
+int taille= taillenrg(i,) {
+while(t>prd)  { /* t = position dernier car dans dernier eng > j positionc car dernier prd */
 buffer.buff[t+ la taille deng jdid]=buffer.buff[t];
 t=t-1;}
-buffer.buff[j+1]=eng;
+char ch[500]=tochar(char ch[500], Medicament eng)
+buffer.buff[j+1]=ch;
 cmp=1;
 y=1;
 bool cbn =true ;
