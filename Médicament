@@ -1,13 +1,41 @@
- 
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
+
+typedef struct {
+    int jour, mois, annee;
+} date;
+
+typedef struct {
+    char nom[20];
+    int qte;
+    float prix;
+    int reference;
+    char ingredient[30];
+    struct date datefabr, dateexp;
+
+} Medicament;
+
+typedef struct {
+    char tab[500];
+    int nb;
+} Bloc;
+
+typedef struct {
+    int nbrenrg, nbbloc;
+} entete;
+
+
+
 int main() {
     char choix;
     int reference;
- index I[1000];
+    index I[1000];
+    medicament med;
     //initialisation de l'entet
     e entet;
     e.nbbloc=0
     e.nbenregistrement=0;
-
 
     FILE* fichier = fopen("medicaments.dat", "wb+");
     Bloc buf;   
