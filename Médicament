@@ -189,7 +189,7 @@ void Suppression(int reference, FILE* fichier,index index[1000],entete e) {
 
     fclose(f);
 }
-void afficher(int j, FILE* fichier) {
+void afficher(int j) {
     char ch[500];
     while (buf.tab[j] != '#') {
         int i = 0; // Initialiser i à zéro avant chaque nouvelle partie de la chaîne
