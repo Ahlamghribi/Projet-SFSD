@@ -31,7 +31,7 @@ typedef struct bloc
    int nbe ; //nobre d'enregistement dans le bloc (dans la case 0 de le bloc
 }bloc;
 
-void entet (FILE *F,int i,entete e)
+void entete (FILE *F,int i,entete e)
  {
     if(i==1)
     {
@@ -117,23 +117,29 @@ int y;
 bool trouve ;
  char x[500];
 void insertion (FILE *F,medicament eng ,entete e,i,j){
+F = fopen("sfsd.txt","rb+");
 recherche (eng.ref,FILE *F,entete e,i,j,trouve); 
 if (!trouve){ 
-   F = fopen("sfsd.txt","rb+");
    char ch[500]=tochar(char ch[500], Medicament eng);
   if(i=1)&&(j=1){
-      buffer.buff[1]=ch;
-      continu=false;
+int d=0;
+while(ch[d]!='0'){ la fin chaine 
+      buffer.buff[j]=ch[d];
+d=d+1;
+j=j+1;
+
+      
   }
   else{
-      if(500-taillebloc())=>taillenrg(i) 
+      if(500-taillebloc(buffer))=>taillenrg(buffer,) ahlam la fonction wch ndir 
      {
           int prd =j;
-while( j=='#'){
+while( buffer.buff[j]!='#'){
 j=j+1;}
 t=j+1;
-int taille= taillenrg(i) 
-while(t>j)  { 
+int taille= taillenrg(i) wesh ndir ahlam 
+while(!feof(F) ) { 
+
 buffer.buff[t+taille ]=buffer.buff[t];
 while(t!="#"){
     t=t-1;}
