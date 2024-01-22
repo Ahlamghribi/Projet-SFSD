@@ -109,9 +109,14 @@ int taillebloc(Bloc buf) {
     for (int i = 0; i < buf.nb; i++) {
         j = j + taillenrg(buf, j);
         j++;
+    
+}
+int tailleNEWeng(char*chaine) {
+return strlen(chaine) + 1; 
     }
+
 int cmp;
-int k;
+int k=1;
 int t;
 int y;
 bool trouve ;
@@ -123,63 +128,59 @@ if (!trouve){
    char ch[500]=tochar(char ch[500], Medicament eng);
   if(i=1)&&(j=1){
 int d=0;
-while(ch[d]!='0'){ la fin chaine 
+while(ch[d]!='#'){ /* dans la fin ecrivez # */ 
       buffer.buff[j]=ch[d];
 d=d+1;
-j=j+1;
-
-      
-  }
+j=j+1;  }
   else{
-      if(500-taillebloc(buffer))=>taillenrg(buffer,) ahlam la fonction wch ndir 
+      if(500-taillebloc(buffer)=>tailleNEWeng(ch))
+       
      {
-          int prd =j;
+          
 while( buffer.buff[j]!='#'){
 j=j+1;}
-t=j+1;
-int taille= taillenrg(i) wesh ndir ahlam 
+t=j+1; 
+d=0;
 while(!feof(F) ) { 
-
-buffer.buff[t+taille ]=buffer.buff[t];
-while(t!="#"){
-    t=t-1;}
-    if(t="#"){
-        t=t+1;
-    }}
-ch=tochar(char ch[500], Medicament eng);
-buffer.buff[j+1]=ch;
+char tmp[500] =buffer.buff[t];
+buffer.buff[t]=ch[d];
+ch[d]=tmp[d];
+d=d+1;
+t=t+1;
 continu=false;
       }
       else{
            bool continu= true ;
     while (continu && i <= e.nbbloc { /* i cest le bloc ou on va inserer eng par la fonction rech */
- fseek(f, i * sizeof(Bloc), SEEK_SET);confirmer
+ fseek(f, i * sizeof(Bloc), SEEK_SET);
  fread(buffer, sizeof(i), nbe, F); /* on copie  tous les engs de ce bloc dans buffer  hna nktb buufer.bufff*/
 x=buffer.buff[buffer.nbe];
-while(t>j)  { 
-buffer.buff[t+taille ]=buffer.buff[t];
-while(t!="#"){
-    t=t-1;}
-    if(t="#"){
-        t=t+1; }}
-ch=tochar(char ch[500], Medicament eng);
-buffer.buff[j+1]=ch;   
-    }
-
-  i=i+1; 
- 
- while(i<=e.nbbloc{
-  if(+taillebloc()>=500){
-      i=i+1;}
-  else{
-while(k>1)    {
-buffer.buff[k+ la taille (x) ]=buffer.buff[k];
-while(k!="#"){
-    k=k-1;}
-    if(k="#"){
-        k=k+1; }}
+while( buffer.buff[j]!='#'){
+j=j+1;}
+t=j+1;
+while(!feof(F) ) { 
+ tmp[500] =buffer.buff[t];
+buffer.buff[t]=ch[d];
+ch[d]=tmp[d];
+d=d+1;
+t=t+1;
 }
-buffer.buff[1]=x;
- continu=false;} }
+
+ i=i+1; 
+  while(i<=e.nbbloc){
+  if(taillebloc(buffer)>=500){
+  i=i+1;}
+  else{
+k=0;
+d=0;
+ while(!feof(F) ) { 
+ tmp[500] =buffer.buff[k];
+buffer.buff[k]=x[d];
+x[d]=tmp[d];
+d=d+1;
+k=k+1;
+
+}
+ }
            }
   }
