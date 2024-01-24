@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
- 
+
 // Structure pour représenter une date
 typedef struct {
     int jour, mois, annee;
