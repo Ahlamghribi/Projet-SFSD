@@ -47,6 +47,12 @@ int tailleBloc(Bloc bloc) {
 
     return taille;
 }
+
+// Fonction pour comparer deux références pour la recherche dichotomique
+int comparerReferences(const void *a, const void *b) {
+    return ((Medicament *)a)->reference - ((Medicament *)b)->reference;
+}
+
  
 
 void Suppression(int reference,FILE* fichier,entete e) { 
