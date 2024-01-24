@@ -1,51 +1,51 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-
+ 
+// Structure pour représenter une date
 typedef struct {
     int jour, mois, annee;
 } date;
 
+// Structure pour représenter un enregistrement (médicament)
 typedef struct {
     char nom[20];
     int qte;
     float prix;
     int reference;
     char ingredient[30];
-    struct date datefabr, dateexp;
-
+    date datefabr, dateexp;
 } Medicament;
 
+// Structure pour représenter un bloc de données
 typedef struct {
-    char tab[500];
-    int nb;
+    int nb;  // Nombre d'enregistrements dans le bloc
+    Medicament enregistrements[10];  // Ajustez la taille en fonction de vos besoins
 } Bloc;
 
+// Structure pour représenter l'entête du fichier
 typedef struct {
-    int nbrenrg, nbbloc;
-} entete;
+    int nbrenrg;  // Nombre total d'enregistrements dans le fichier
+    int nbbloc;   // Nombre total de blocs dans le fichier
+} Entete;
 
 
-int taillenrg(Bloc buf, int j) {
-    int cmp = 1;
-
-    while (buf.tab[j] != '#') {
-        j++;
-        cmp++;
-    }
-
-    return cmp;
+// Fonction pour calculer la taille d'un enregistrement logique
+int tailleEnregistrement(Medicament med) {
+    // Ajustez la taille en fonction de la structure réelle de vos enregistrements
+    return sizeof(char) * 20 + sizeof(int) + sizeof(float) + sizeof(int) + sizeof(char) * 30 + sizeof(date) * 2;
 }
 
-int taillebloc(Bloc buf) {
-    int j = 1;
+// Fonction pour calculer la taille d'un bloc
+int tailleBloc(Bloc bloc) {
+    int taille = sizeof(int);  // Taille du champ "nb" dans le bloc
 
-    for (int i = 0; i < buf.nb; i++) {
-        j = j + taillenrg(buf, j);
-        j++;
+    for (int i = 0; i < bloc.nb; i++) {
+        taille += tailleEnregistrement(bloc.enregistrements[i]);
     }
 
-    return j;
+    return taille;
 }
  
 
