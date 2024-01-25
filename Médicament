@@ -175,76 +175,43 @@ bool supprimerMedicament(FILE *fichier, int reference) {
     return false;  // La référence n'a pas été trouvée
 }
  
-void afficher(int j) {
-    char ch[500];
-    while (buf.tab[j] != '#') {
-        int i = 0; // Initialiser i à zéro avant chaque nouvelle partie de la chaîne
+// Fonction pour créer un nouveau médicament
+Medicament creerMedicament() {
+    Medicament med;
 
-        printf("Le nom de medicaments : ");
-        while (buf.tab[j] != '$') {
-            ch[i] = buf.tab[j];
-            j++;
-            i++;
-        }
-        ch[i] = '\0'; // Assurez-vous de terminer la chaîne avec un caractère nul
-        printf("%s", ch);
-        printf("\n");
-        j++;
+    printf("Nom du medicament: ");
+    scanf("%s", med.nom);
 
-        // Réinitialiser i à zéro avant de traiter la quantité
-        i = 0;
-        printf("La quantite de medicaments : ");
-        while (buf.tab[j] != '$') {
-            ch[i] = buf.tab[j];
-            j++;
-            i++;
-        }
-        ch[i] = '\0';
-        printf("%s", ch);
-        printf("\n");
-        j++;
+    printf("Quantite: ");
+    scanf("%d", &med.qte);
 
-        // Réinitialiser i à zéro avant de traiter le prix
-        i = 0;
-        printf("Le prix de medicaments : ");
-        while (buf.tab[j] != '$') {
-            ch[i] = buf.tab[j];
-            j++;
-            i++;
-        }
-        ch[i] = '\0';
-        printf("%s", ch);
-        printf("\n");
-        j++;
+    printf("Prix: ");
+    scanf("%f", &med.prix);
 
-        // Réinitialiser i à zéro avant de traiter la date de fabrication
-        i = 0;
-        printf("La date de fabrication (jour mois annee) : ");
-        while (buf.tab[j] != '$') {
-            ch[i] = buf.tab[j];
-            j++;
-            i++;
-        }
-        ch[i] = '\0';
-        printf("%s", ch);
-        printf("\n");
-        j++;
+    printf("Reference: ");
+    scanf("%d", &med.reference);
 
-        // Réinitialiser i à zéro avant de traiter la date d'expiration
-        i = 0;
-        printf("La date de l'expiration (jour mois annee) : ");
-        while (buf.tab[j] != '$') {
-            ch[i] = buf.tab[j];
-            j++;
-            i++;
-        }
-        ch[i] = '\0';
-        printf("%s", ch);
-        printf("\n");
-    }
+    printf("Ingredient: ");
+    scanf("%s", med.ingredient);
+
+    printf("Date de fabrication (jj mm aaaa): ");
+    scanf("%d %d %d", &med.datefabr.jour, &med.datefabr.mois, &med.datefabr.annee);
+
+    printf("Date d'expiration (jj mm aaaa): ");
+    scanf("%d %d %d", &med.dateexp.jour, &med.dateexp.mois, &med.dateexp.annee);
+
+    return med;
 }
 
-
+void afficherMedicament(Medicament med) {
+    printf("Nom: %s\n", med.nom);
+    printf("Quantite: %d\n", med.qte);
+    printf("Prix: %.2f\n", med.prix);
+    printf("Reference: %d\n", med.reference);
+    printf("Ingredient: %s\n", med.ingredient);
+    printf("Date de fabrication: %02d/%02d/%04d\n", med.datefabr.jour, med.datefabr.mois, med.datefabr.annee);
+    printf("Date d'expiration: %02d/%02d/%04d\n", med.dateexp.jour, med.dateexp.mois, med.dateexp.annee);
+}
 void tochar(char ch[500], Medicament med)
 {
     int i = 0;
