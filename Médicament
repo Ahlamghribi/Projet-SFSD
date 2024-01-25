@@ -3,12 +3,10 @@
 #include <stdbool.h>
 #include <string.h>
 
-// Structure pour représenter une date
 typedef struct {
     int jour, mois, annee;
 } date;
 
-// Structure pour représenter un enregistrement (médicament)
 typedef struct {
     char nom[20];
     int qte;
@@ -18,28 +16,28 @@ typedef struct {
     date datefabr, dateexp;
 } Medicament;
 
-// Structure pour représenter un bloc de données
 typedef struct {
-    int nb;  // Nombre d'enregistrements dans le bloc
-    Medicament enregistrements[10];  // Ajustez la taille en fonction de vos besoins
+    int nb;
+    Medicament enregistrements[10];
 } Bloc;
 
-// Structure pour représenter l'entête du fichier
 typedef struct {
-    int nbrenrg;  // Nombre total d'enregistrements dans le fichier
-    int nbbloc;   // Nombre total de blocs dans le fichier
+    int nbrenrg;
+    int nbbloc;
 } Entete;
 
+typedef struct {
+    int reference, cas, bloc;
+} Index;
 
 // Fonction pour calculer la taille d'un enregistrement logique
 int tailleEnregistrement(Medicament med) {
-    // Ajustez la taille en fonction de la structure réelle de vos enregistrements
     return sizeof(char) * 20 + sizeof(int) + sizeof(float) + sizeof(int) + sizeof(char) * 30 + sizeof(date) * 2;
 }
 
 // Fonction pour calculer la taille d'un bloc
 int tailleBloc(Bloc bloc) {
-    int taille = sizeof(int);  // Taille du champ "nb" dans le bloc
+    int taille = sizeof(int);
 
     for (int i = 0; i < bloc.nb; i++) {
         taille += tailleEnregistrement(bloc.enregistrements[i]);
@@ -53,28 +51,23 @@ int comparerReferences(const void *a, const void *b) {
     return ((Medicament *)a)->reference - ((Medicament *)b)->reference;
 }
 
- 
 // Fonction pour ajouter un enregistrement à un bloc de manière ordonnée
 bool ajouterAuBloc(Bloc *bloc, Medicament med) {
     int tailleEnreg = tailleEnregistrement(med);
 
     if (tailleBloc(*bloc) + tailleEnreg <= 500) {
-        // Insérer l'enregistrement à la bonne position en maintenant l'ordre
         int position = 0;
 
         while (position < bloc->nb && comparerReferences(&med, &(bloc->enregistrements[position])) > 0) {
             position++;
         }
 
-        // Décaler les enregistrements pour faire de la place pour le nouvel enregistrement
         for (int i = bloc->nb - 1; i >= position; i--) {
             bloc->enregistrements[i + 1] = bloc->enregistrements[i];
         }
 
         bloc->enregistrements[position] = med;
         bloc->nb++;
-         int comparerReferences();
-        // Trier le bloc après l'insertion
         qsort(bloc->enregistrements, bloc->nb, sizeof(Medicament), comparerReferences);
 
         return true;
@@ -92,195 +85,226 @@ void enregistrerBloc(FILE *fichier, Bloc bloc, Entete *entete) {
 }
 
 
-// Fonction pour rechercher un médicament par référence (dichotomique)
-Medicament rechercherMedicament(FILE *fichier, int reference) {
-    fseek(fichier, 0, SEEK_SET);
+// Fonction pour créer un nouveau médicament
+Medicament creerMedicament() {
+    Medicament med;
 
-    Entete entete;
-    fread(&entete, sizeof(Entete), 1, fichier);
+    printf("Nom du medicament: ");
+    scanf("%s", med.nom);
 
-    Bloc bloc;
+    printf("Quantite: ");
+    scanf("%d", &med.qte);
 
-    for (int i = 0; i < entete.nbbloc; i++) {
+    printf("Prix: ");
+    scanf("%f", &med.prix);
+
+    printf("Reference: ");
+    scanf("%d", &med.reference);
+
+    printf("Ingredient: ");
+    scanf("%s", med.ingredient);
+
+    printf("Date de fabrication (jj mm aaaa): ");
+    scanf("%d %d %d", &med.datefabr.jour, &med.datefabr.mois, &med.datefabr.annee);
+
+    printf("Date d'expiration (jj mm aaaa): ");
+    scanf("%d %d %d", &med.dateexp.jour, &med.dateexp.mois, &med.dateexp.annee);
+
+    return med;
+}// Fonction pour rechercher un médicament par référence avec index et retourner la position
+int rechercherPositionMedicamentAvecIndexEtDichotomie(FILE *fichier, Index index[], int nbIndex, int reference) {
+    int gauche = 0, droite = nbIndex - 1;
+
+    while (gauche <= droite) {
+        int milieu = gauche + (droite - gauche) / 2;
+
+        if (index[milieu].reference == reference) {
+            return milieu; // Retourner la position
+        } else if (index[milieu].reference < reference) {
+            gauche = milieu + 1;
+        } else {
+            droite = milieu - 1;
+        }
+    }
+
+    // Retourner -1 si la référence n'est pas trouvée
+    return -1;
+}
+
+
+// Fonction pour ajouter un médicament avec index en maintenant l'ordre
+void ajouterMedicamentAvecIndexEtIndexEnOrdre(FILE *fichier, Index index[], int *nbIndex, Bloc *bloc, Entete *entete, Medicament nouveauMed) {
+    if (ajouterAuBloc(bloc, nouveauMed)) {
+        entete->nbrenrg++;
+        enregistrerBloc(fichier, *bloc, entete);
+
+        Index newIndex = {nouveauMed.reference, entete->nbbloc - 1, bloc->nb - 1};
+
+        // Ajout de l'index en maintenant l'ordre
+        int position = *nbIndex;
+
+        while (position > 0 && index[position - 1].reference > newIndex.reference) {
+            index[position] = index[position - 1];
+            position--;
+        }
+
+        index[position] = newIndex;
+        (*nbIndex)++;
+
+        printf("Medicament ajoute avec succes.\n");
+    } else {
+        enregistrerBloc(fichier, *bloc, entete);
+        bloc->nb = 0;
+        ajouterAuBloc(bloc, nouveauMed);
+        entete->nbrenrg++;
+        enregistrerBloc(fichier, *bloc, entete);
+
+        Index newIndex = {nouveauMed.reference, entete->nbbloc - 1, bloc->nb - 1};
+
+        // Ajout de l'index en maintenant l'ordre
+        int position = *nbIndex;
+
+        while (position > 0 && index[position - 1].reference > newIndex.reference) {
+            index[position] = index[position - 1];
+            position--;
+        }
+
+        index[position] = newIndex;
+        (*nbIndex)++;
+
+        printf("Medicament ajoute avec succes.\n");
+    }
+}
+
+
+// Fonction pour supprimer un médicament par référence avec index
+bool supprimerMedicamentAvecIndexEtDichotomie(FILE *fichier, Index index[], int *nbIndex, int reference, Entete *entete) {
+    int position = rechercherPositionMedicamentAvecIndexEtDichotomie(fichier,index, *nbIndex, reference);
+
+    if (position < *nbIndex && index[position].reference == reference) {
+        int i = index[position].bloc;
+        int j = index[position].cas;
+
+        Bloc bloc;
+
         fseek(fichier, i * sizeof(Bloc), SEEK_SET);
         fread(&bloc, sizeof(Bloc), 1, fichier);
 
-        // Utiliser la recherche dichotomique à l'intérieur de chaque bloc
-        int debut = 0;
-        int fin = bloc.nb - 1;
-
-        while (debut <= fin) {
-            int milieu = debut + (fin - debut) / 2;
-
-            if (bloc.enregistrements[milieu].reference == reference) {
-                return bloc.enregistrements[milieu]; // Médicament trouvé
-            }
-
-            if (bloc.enregistrements[milieu].reference < reference) {
-                debut = milieu + 1;
-            } else {
-                fin = milieu - 1;
-            }
+        while (j < bloc.nb - 1) {
+            bloc.enregistrements[j] = bloc.enregistrements[j + 1];
+            j++;
         }
+
+        entete->nbrenrg--;
+
+        if (bloc.nb == 1) {
+            entete->nbbloc--;
+        }
+
+        fseek(fichier, i * sizeof(Bloc), SEEK_SET);
+        fwrite(&bloc, sizeof(Bloc), 1, fichier);
+
+        // Supprimer l'index correspondant
+        for (int l = position; l < *nbIndex - 1; l++) {
+            index[l] = index[l + 1];
+        }
+
+        (*nbIndex)--;
+
+        return true;
     }
 
-    // Retourner un médicament vide si la référence n'est pas trouvée
-    Medicament medicamentVide = {"", 0, 0.0, 0, "", {0, 0, 0}, {0, 0, 0}};
-    return medicamentVide;
+    return false;
 }
 
-// Fonction pour supprimer un médicament par référence
-bool supprimerMedicament(FILE *fichier, int reference) {
-    fseek(fichier, 0, SEEK_SET);
 
+int main() {
+    FILE *fichier = fopen("medicaments.dat", "rb+");
     Entete entete;
-    fread(&entete, sizeof(Entete), 1, fichier);
+    entete.nbrenrg = 0;
+    entete.nbbloc = 0;
 
     Bloc bloc;
+    bloc.nb = 0;
 
-    for (int i = 0; i < entete.nbbloc; i++) {
+    Index index[1000];
+    int nbIndex = 0;
+
+    int choix;
+
+    do {
+        printf("\n1. Ajouter un medicament\n");
+        printf("2. Rechercher un medicament\n");
+        printf("3. Supprimer un medicament\n");
+        printf("4. Quitter\n");
+        printf("Choix: ");
+        scanf("%d", &choix);
+
+        switch (choix) {
+            case 1: {
+                // Ajouter un médicament avec index
+                Medicament nouveauMed = creerMedicament();
+             ajouterMedicamentAvecIndexEtIndexEnOrdre(fichier, index, &nbIndex, &bloc, &entete, nouveauMed);
+                break;
+            }case 2: {
+    // Rechercher un médicament par référence avec index
+    int reference;
+    printf("Entrez la reference du medicament: ");
+    scanf("%d", &reference);
+
+    int position = rechercherPositionMedicamentAvecIndexEtDichotomie(fichier, index, nbIndex, reference);
+
+    if (position != -1) { 
+
+        // Utiliser la position pour obtenir le médicament
+        int i = index[position].bloc;
+        int j = index[position].cas;
+
+        Bloc bloc;
+
         fseek(fichier, i * sizeof(Bloc), SEEK_SET);
         fread(&bloc, sizeof(Bloc), 1, fichier);
 
-        for (int j = 0; j < bloc.nb; j++) {
-            if (bloc.enregistrements[j].reference == reference) {
-                // Supprimer le médicament du bloc
-                for (int k = j; k < bloc.nb - 1; k++) {
-                    bloc.enregistrements[k] = bloc.enregistrements[k + 1];
+        Medicament resultat = bloc.enregistrements[j];
+
+        // Afficher les détails du médicament trouvé
+        printf("Nom: %s\n", resultat.nom);
+        printf("Quantite: %d\n", resultat.qte);
+        printf("Prix: %.2f\n", resultat.prix);
+        printf("Reference: %d\n", resultat.reference);
+        printf("Ingredient: %s\n", resultat.ingredient);
+        printf("Date de fabrication: %02d/%02d/%04d\n", resultat.datefabr.jour, resultat.datefabr.mois, resultat.datefabr.annee);
+        printf("Date d'expiration: %02d/%02d/%04d\n", resultat.dateexp.jour, resultat.dateexp.mois, resultat.dateexp.annee);
+    } else {
+        printf("\nMedicament non trouve.\n");
+    }
+    break;
+}
+
+            case 3: {
+                // Supprimer un médicament par référence avec index
+                int reference;
+                printf("Entrez la reference du medicament a supprimer: ");
+                scanf("%d", &reference);
+
+if (supprimerMedicamentAvecIndexEtDichotomie(fichier, index, &nbIndex, reference, &entete))
+                    {
+                    printf("Medicament supprime avec succes.\n");
+                } else {
+                    printf("Medicament non trouve.\n");
                 }
-
-                bloc.nb--;
-
-                // Réécrire le bloc modifié dans le fichier
-                fseek(fichier, i * sizeof(Bloc), SEEK_SET);
-                fwrite(&bloc, sizeof(Bloc), 1, fichier);
-
-                // Mettre à jour le nombre total d'enregistrements
-                entete.nbrenrg--;
-
-                // Mettre à jour le nombre total de blocs si le bloc est devenu vide
-                if (bloc.nb == 0) {
-                    entete.nbbloc--;
-                }
-
-                // Réécrire l'entête dans le fichier
-                fseek(fichier, 0, SEEK_SET);
-                fwrite(&entete, sizeof(Entete), 1, fichier);
-
-                return true;
+                break;
             }
+            case 4:
+                printf("Programme termine.\n");
+                break;
+            default:
+                printf("Choix invalide. Veuillez reessayer.\n");
+                break;
         }
-    }
+    } while (choix != 4);
 
-    return false;  // La référence n'a pas été trouvée
-}
- 
-void afficher(int j) {
-    char ch[500];
-    while (buf.tab[j] != '#') {
-        int i = 0; // Initialiser i à zéro avant chaque nouvelle partie de la chaîne
+    fclose(fichier);
 
-        printf("Le nom de medicaments : ");
-        while (buf.tab[j] != '$') {
-            ch[i] = buf.tab[j];
-            j++;
-            i++;
-        }
-        ch[i] = '\0'; // Assurez-vous de terminer la chaîne avec un caractère nul
-        printf("%s", ch);
-        printf("\n");
-        j++;
-
-        // Réinitialiser i à zéro avant de traiter la quantité
-        i = 0;
-        printf("La quantite de medicaments : ");
-        while (buf.tab[j] != '$') {
-            ch[i] = buf.tab[j];
-            j++;
-            i++;
-        }
-        ch[i] = '\0';
-        printf("%s", ch);
-        printf("\n");
-        j++;
-
-        // Réinitialiser i à zéro avant de traiter le prix
-        i = 0;
-        printf("Le prix de medicaments : ");
-        while (buf.tab[j] != '$') {
-            ch[i] = buf.tab[j];
-            j++;
-            i++;
-        }
-        ch[i] = '\0';
-        printf("%s", ch);
-        printf("\n");
-        j++;
-
-        // Réinitialiser i à zéro avant de traiter la date de fabrication
-        i = 0;
-        printf("La date de fabrication (jour mois annee) : ");
-        while (buf.tab[j] != '$') {
-            ch[i] = buf.tab[j];
-            j++;
-            i++;
-        }
-        ch[i] = '\0';
-        printf("%s", ch);
-        printf("\n");
-        j++;
-
-        // Réinitialiser i à zéro avant de traiter la date d'expiration
-        i = 0;
-        printf("La date de l'expiration (jour mois annee) : ");
-        while (buf.tab[j] != '$') {
-            ch[i] = buf.tab[j];
-            j++;
-            i++;
-        }
-        ch[i] = '\0';
-        printf("%s", ch);
-        printf("\n");
-    }
-}
-
-
-void tochar(char ch[500], Medicament med)
-{
-    int i = 0;
-
-    for (int j = 0; j < sizeof(med.nom); j++)
-    {
-        ch[i] = med.nom[j];
-        i++;
-    }
-    ch[i] = '$';
-    i++;
-
-    sprintf(&ch[i], "%d", med.qte);
-    i =i+ snprintf(NULL, 0, "%d", med.qte);
-
-    ch[i] = '$';
-    i++;
-
-    sprintf(&ch[i], "%d", med.reference);
-    i += snprintf(NULL, 0, "%d", med.reference);
-    ch[i] = '$';
-    i++;
-    sprintf(&ch[i], "%f", med.prix);
-    i += snprintf(NULL, 0, "%f", med.prix);
-    ch[i] = '$';
-    i++;
-
-    sprintf(&ch[i], "%d %d %d", med.datefabr.jour, med.datefabr.mois, med.datefabr.annee);
-    i += snprintf(NULL, 0, "%d %d %d", med.datefabr.jour, med.datefabr.mois, med.datefabr.annee);
-    ch[i] = '$';
-    i++;
-
-    sprintf(&ch[i], "%d %d %d", med.dateexp.jour, med.dateexp.mois, med.dateexp.annee);
-    i += snprintf(NULL, 0, "%d %d %d", med.dateexp.jour, med.dateexp.mois, med.dateexp.annee);
-    ch[i] = '$';
-    i++;
-
-    ch[i] = '#';
+    return 0;
 }
