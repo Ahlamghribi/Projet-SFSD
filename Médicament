@@ -83,6 +83,15 @@ bool ajouterAuBloc(Bloc *bloc, Medicament med) {
     return false;
 }
 
+// Fonction pour enregistrer un bloc dans le fichier
+void enregistrerBloc(FILE *fichier, Bloc bloc, Entete *entete) {
+    fseek(fichier, entete->nbbloc * sizeof(Bloc), SEEK_SET);
+    fwrite(&bloc, sizeof(Bloc), 1, fichier);
+
+    entete->nbbloc++;
+}
+
+
 void Suppression(int reference,FILE* fichier,entete e) { 
     bool trouv;
     int i, j;
