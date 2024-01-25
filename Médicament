@@ -92,146 +92,89 @@ void enregistrerBloc(FILE *fichier, Bloc bloc, Entete *entete) {
 }
 
 
-void Suppression(int reference,FILE* fichier,entete e) { 
-    bool trouv;
-    int i, j;
-    Bloc buf;
+// Fonction pour rechercher un médicament par référence (dichotomique)
+Medicament rechercherMedicament(FILE *fichier, int reference) {
+    fseek(fichier, 0, SEEK_SET);
 
-    f = fopen(nomfich, "rb+");
+    Entete entete;
+    fread(&entete, sizeof(Entete), 1, fichier);
 
-    Rech(reference, nomfich, trouv, i, j);
-    int cmp = taillenrg(buf.tab,j);
-    if (trouv) {
-        fseek(f, i * sizeof(Bloc), SEEK_SET);
-        fread(&buf, sizeof(Bloc), 1, f);
+    Bloc bloc;
 
-      while (!feof(fichier)) {
+    for (int i = 0; i < entete.nbbloc; i++) {
+        fseek(fichier, i * sizeof(Bloc), SEEK_SET);
+        fread(&bloc, sizeof(Bloc), 1, fichier);
 
-            if (taillebloc(buf) +taillenrg(buf.tab,j+cmp+1)-taillenrg(buf.tab,j) <= 500) { //est ce que n9dro ndiro enregistrement jdid f placeto wyekfina place
-                while (buf.tab[cmp] != '#') {
-                    buf.tab[j] = buf.tab[j+cmp];
-                    j++;  
-               //suppression logique
-                while (j<=500) {
-                    buf.tab[j] = '*';
-                    j++;
-                }
-                j++;
-               // si le debut de l'enregistrement n'est pas dans le debut de bloc et il y'a de l'espace on le décale
-                if (j!=j+cmp+1)
-                {
+        // Utiliser la recherche dichotomique à l'intérieur de chaque bloc
+        int debut = 0;
+        int fin = bloc.nb - 1;
 
-                        while(buf.tab[j+cmp]!='#')
-                    {
-                        buf.tab[j]=buf.tab[j+cmp];
-                        j++;
-                    }
-                    j++; 
-                }
-                }
-            else
-            { 
-             fseek(f, (i+1) * sizeof(Bloc), SEEK_SET);
-             fwrite(&buf, sizeof(Bloc), 1, f);
-            while (buf.tab[j+cmp] != '#')
-            {
-             buf.tab[j] = buf.tab[j+cmp];
-             j++;
+        while (debut <= fin) {
+            int milieu = debut + (fin - debut) / 2;
+
+            if (bloc.enregistrements[milieu].reference == reference) {
+                return bloc.enregistrements[milieu]; // Médicament trouvé
             }
-            j=j+cmp;
+
+            if (bloc.enregistrements[milieu].reference < reference) {
+                debut = milieu + 1;
+            } else {
+                fin = milieu - 1;
             }
-            }
-           buf.tab[j+1] = '#';
-
-
-        fseek(f, i * sizeof(Bloc), SEEK_SET);
-        fwrite(&buf, sizeof(Bloc), 1, f);
-
-        e.nbrenrg--;
-    }
-    
-    fclose(f);
-}
-
-// suppression en utilisant l'index
-typedef struct {
- 
-int reference ,cas,bloc;
-
-}index;
-  
-void Suppression(int reference, FILE* fichier,index index[1000],entete e) {
-    FILE *f; int i;//num de bloc 
-    Bloc buf;
-    f = fopen(nomfich, "rb+");
-    int r=rechercheIndex (int reference,index[1000],entete e); // numero enregistrement
-    int j=index[r].cas;
-    int i=index[r].bloc;
-    
-    fseek(f,i* sizeof(Bloc), SEEK_SET);
-    fread(&buf, sizeof(Bloc), 1, f); // averifier 
-    int cmp = taillenrg(buf.tab,j);  
-        while (!feof(fichier)) 
-        { 
-            if (taillebloc(buf) +taillenrg(buf.tab,j+cmp+1)-taillenrg(buf.tab,j)> 500) { //est ce que n9dro ndiro enregistrement jdid f placeto wyekfina place 
-                fseek(f,(i+1)* sizeof(Bloc), SEEK_SET); //acceder a le nouveau bloc
-                fread(&buf, sizeof(Bloc), 1, f); 
-                
-                 //suppression logique 
-                while (j<=500) {
-                    buf.tab[j] = '*';
-                    j++; 
-                }
-                j++;
-               // si le debut de l'enregistrement n'est pas dans le debut de bloc et il y'a de l'espace on le décale
-                if (j!=j+cmp+1)
-                {
-                
-                        while(buf.tab[j+cmp]!='#')
-                    {
-                        buf.tab[j]=buf.tab[j+cmp];
-                    j++;
-                    }
-                    j++;
-                
-                } //update tableau d'index 
-                        index[l]=index[l+1];
-                        index[l].cas=j;
-//décalage
-                 for (int l=r+1;l<e.nbrenrg;l++)
-                {
-                         index[l]=index[l+1];
-                }
-            }
-            
-    else  //il y'a de l'espace 
-        {
-                //decalage 
-                while (buf.tab[j+cmp] != '#') {
-                    buf.tab[j] = buf.tab[j+cmp];
-                    j++; 
-                }
-                 
-                
-                //modification du tableau d'index 
-                for (int l=r;l<e.nbrenrg;l++)
-                { 
-                        index[l].bloc--;
-                        index[l].cas=j; 
-                } 
-                j=j+cmp;
-            }  
-}
-          
         }
-        e.nbrenrg--; 
-        buf.tab[j]='#';
-        fseek(f, i * sizeof(Bloc), SEEK_SET);
-        fwrite(&buf, sizeof(Bloc), 1, f);
     }
 
-    fclose(f);
+    // Retourner un médicament vide si la référence n'est pas trouvée
+    Medicament medicamentVide = {"", 0, 0.0, 0, "", {0, 0, 0}, {0, 0, 0}};
+    return medicamentVide;
 }
+
+// Fonction pour supprimer un médicament par référence
+bool supprimerMedicament(FILE *fichier, int reference) {
+    fseek(fichier, 0, SEEK_SET);
+
+    Entete entete;
+    fread(&entete, sizeof(Entete), 1, fichier);
+
+    Bloc bloc;
+
+    for (int i = 0; i < entete.nbbloc; i++) {
+        fseek(fichier, i * sizeof(Bloc), SEEK_SET);
+        fread(&bloc, sizeof(Bloc), 1, fichier);
+
+        for (int j = 0; j < bloc.nb; j++) {
+            if (bloc.enregistrements[j].reference == reference) {
+                // Supprimer le médicament du bloc
+                for (int k = j; k < bloc.nb - 1; k++) {
+                    bloc.enregistrements[k] = bloc.enregistrements[k + 1];
+                }
+
+                bloc.nb--;
+
+                // Réécrire le bloc modifié dans le fichier
+                fseek(fichier, i * sizeof(Bloc), SEEK_SET);
+                fwrite(&bloc, sizeof(Bloc), 1, fichier);
+
+                // Mettre à jour le nombre total d'enregistrements
+                entete.nbrenrg--;
+
+                // Mettre à jour le nombre total de blocs si le bloc est devenu vide
+                if (bloc.nb == 0) {
+                    entete.nbbloc--;
+                }
+
+                // Réécrire l'entête dans le fichier
+                fseek(fichier, 0, SEEK_SET);
+                fwrite(&entete, sizeof(Entete), 1, fichier);
+
+                return true;
+            }
+        }
+    }
+
+    return false;  // La référence n'a pas été trouvée
+}
+ 
 void afficher(int j) {
     char ch[500];
     while (buf.tab[j] != '#') {
