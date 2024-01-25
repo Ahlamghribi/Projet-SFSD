@@ -1,99 +1,37 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdbool.h>
-typedef struct date
-{
-    int anne;
-    int mois;
-    int jour;
+#include <string.h>
+#include <stdlib.h>
 
-}date;
-typedef struct entete
-{
- int nbbloc;//nobre de bloc total
- int nbenreg;//nb de enregistrement total
-}entete;
+// Structures for date, location, medicament, bloc, and entete
 
+typedef struct {
+    int jour, mois, annee;
+} date;
 
-typedef struct medicamment{
-   int reference; // le champ utilisé comme clé de recherche et pour ordonner le fichier
-   float prix;
-   date expiration;
-   date fabrication;
-   char ingredient[50];// le champ utiliser pour la taille variable
-   int quantite;
-}medicamment;
+typedef struct {
+    int i, j;
+    bool trouve;
+} location;
 
+typedef struct {
+    char nom[20];
+    int qte;
+    float prix;
+    int reference;
+    date datefabr, dateexp;
+} Medicament;
 
-typedef struct bloc
-{
-   char buff[500];
-   int nbe ; //nobre d'enregistement dans le bloc (dans la case 0 de le bloc
-}bloc;
+typedef struct {
+    char tab[500];
+    int nb;
+} Bloc;
 
-void entete (FILE *F,int i,entete e)
- {
-    if(i==1)
-    {
-        return e.nbbloc;
-    }
-    if(i==2)
-    {
-        return e.nbenreg;
-    }
- }
+typedef struct {
+    int nbrenrg, nbbloc;
+} entete;
 
- void ref (int tab[4])
- {
-     int s=0;
-   for (int i=0;i<=3;i++)
-   {
-       s=s*10+tab[i];
-   }
-   return s;
- }
-void tochar(char ch[500], Medicament med)
-{
-    int i = 0;
-
-    for (int j = 0; j < sizeof(med.nom); j++)
-    {
-        ch[i] = med.nom[j];
-        i++;
-    }
-    ch[i] = '$';
-    i++;
-
-    sprintf(&ch[i], "%d", med.qte);
-    i =i+ snprintf(NULL, 0, "%d", med.qte);
-
-    ch[i] = '$';
-    i++;
-
-    sprintf(&ch[i], "%d", med.reference);
-    i += snprintf(NULL, 0, "%d", med.reference);
-    ch[i] = '$';
-    i++;
-    sprintf(&ch[i], "%f", med.prix);
-    i += snprintf(NULL, 0, "%f", med.prix);
-    ch[i] = '$';
-    i++;
-
-    sprintf(&ch[i], "%d %d %d", med.datefabr.jour, med.datefabr.mois, med.datefabr.annee);
-    i += snprintf(NULL, 0, "%d %d %d", med.datefabr.jour, med.datefabr.mois, med.datefabr.annee);
-    ch[i] = '$';
-    i++;
-
-    sprintf(&ch[i], "%d %d %d", med.dateexp.jour, med.dateexp.mois, med.dateexp.annee);
-    i += snprintf(NULL, 0, "%d %d %d", med.dateexp.jour, med.dateexp.mois, med.dateexp.annee);
-    ch[i] = '$';
-    i++;
-
-    ch[i] = '#';
-}
-
-
-int  taillenrg(Bloc buf, int j) {
+int taillenrg(Bloc buf, int j) {
     int cmp = 1;
 
     while (buf.tab[j] != '#') {
@@ -103,84 +41,279 @@ int  taillenrg(Bloc buf, int j) {
 
     return cmp;
 }
+
+// Function to calculate the size of a bloc
 int taillebloc(Bloc buf) {
     int j = 1;
 
     for (int i = 0; i < buf.nb; i++) {
         j = j + taillenrg(buf, j);
         j++;
-    
-}
-int tailleNEWeng(char*chaine) {
-return strlen(chaine) + 1; 
     }
 
-int cmp;
-int k=1;
-int t;
-int y;
-bool trouve ;
- char x[500];
-void insertion (FILE *F,medicament eng ,entete e,i,j){
-F = fopen("sfsd.txt","rb+");
-recherche (eng.ref,FILE *F,entete e,i,j,trouve); 
-if (!trouve){ 
-   char ch[500]=tochar(char ch[500], Medicament eng);
-  if(i=1)&&(j=1){
-int d=0;
-while(ch[d]!='#'){ /* dans la fin ecrivez # */ 
-      buffer.buff[j]=ch[d];
-d=d+1;
-j=j+1;  }
-  else{
-      if(500-taillebloc(buffer)=>tailleNEWeng(ch))
-       
-     {
-          
-while( buffer.buff[j]!='#'){
-j=j+1;}
-t=j+1; 
-d=0;
-while(!feof(F) ) { 
-char tmp[500] =buffer.buff[t];
-buffer.buff[t]=ch[d];
-ch[d]=tmp[d];
-d=d+1;
-t=t+1;
-continu=false;
-      }
-      else{
-           bool continu= true ;
-    while (continu && i <= e.nbbloc { /* i cest le bloc ou on va inserer eng par la fonction rech */
- fseek(f, i * sizeof(Bloc), SEEK_SET);
- fread(buffer, sizeof(i), nbe, F); /* on copie  tous les engs de ce bloc dans buffer  hna nktb buufer.bufff*/
-x=buffer.buff[buffer.nbe];
-while( buffer.buff[j]!='#'){
-j=j+1;}
-t=j+1;
-while(!feof(F) ) { 
- tmp[500] =buffer.buff[t];
-buffer.buff[t]=ch[d];
-ch[d]=tmp[d];
-d=d+1;
-t=t+1;
+    return j;
 }
 
- i=i+1; 
-  while(i<=e.nbbloc){
-  if(taillebloc(buffer)>=500){
-  i=i+1;}
-  else{
-k=0;
-d=0;
- while(!feof(F) ) { 
- tmp[500] =buffer.buff[k];
-buffer.buff[k]=x[d];
-x[d]=tmp[d];
-d=d+1;
-k=k+1;
 
+// Function to convert Medicament to char array
+void tochar(char ch[500], Medicament med) {
+    int i = 0;
+
+    // Convert reference to string
+    i += sprintf(&ch[i], "%04d$", med.reference);
+
+    // Add medication name
+    strncpy(&ch[i], med.nom, sizeof(med.nom) - 1);
+    i += strlen(med.nom);
+    ch[i] = '$';
+    i++;
+
+    // Convert quantity to string
+    i += sprintf(&ch[i], "%d$", med.qte);
+
+    // Convert price to string
+    i += sprintf(&ch[i], "%.2f$", med.prix);
+
+    // Convert dates to string
+    i += sprintf(&ch[i], "%02d %02d %04d$", med.datefabr.jour, med.datefabr.mois, med.datefabr.annee);
+    i += sprintf(&ch[i], "%02d %02d %04d$", med.dateexp.jour, med.dateexp.mois, med.dateexp.annee);
+
+    // Add end of enregistrement character
+    ch[i] = '#';
 }
- }
-           }
-  }
+
+// Function to display information from a bloc
+void afficher(Bloc buf, int j) {
+    char ch[500];
+    while (buf.tab[j] != '#') {
+        int i = 0;
+
+        // Display medication name
+        printf("Le nom de medicaments : ");
+        while (buf.tab[j] != '$') {
+            ch[i] = buf.tab[j];
+            j++;
+            i++;
+        }
+        ch[i] = '\0';
+        printf("%s\n", ch);
+        j++;
+
+        // Display quantity
+        i = 0;
+        printf("La quantite de medicaments : ");
+        while (buf.tab[j] != '$') {
+            ch[i] = buf.tab[j];
+            j++;
+            i++;
+        }
+        ch[i] = '\0';
+        printf("%s\n", ch);
+        j++;
+
+        // Display price
+        i = 0;
+        printf("Le prix de medicaments : ");
+        while (buf.tab[j] != '$') {
+            ch[i] = buf.tab[j];
+            j++;
+            i++;
+        }
+        ch[i] = '\0';
+        printf("%s\n", ch);
+        j++;
+
+        // Display date of fabrication
+        i = 0;
+        printf("La date de fabrication (jour mois annee) : ");
+        while (buf.tab[j] != '$') {
+            ch[i] = buf.tab[j];
+            j++;
+            i++;
+        }
+        ch[i] = '\0';
+        printf("%s\n", ch);
+        j++;
+
+        // Display date of expiration
+        i = 0;
+        printf("La date de l'expiration (jour mois annee) : ");
+        while (buf.tab[j] != '$') {
+            ch[i] = buf.tab[j];
+            j++;
+            i++;
+        }
+        ch[i] = '\0';
+        printf("%s\n", ch);
+        printf("\n");
+    }
+}
+
+// Function to extract reference from a string
+int ref(char tab[4]) {
+    int s = 1;
+    s = atoi(tab);
+    printf("\n%d ref", s);
+    return (s);
+}
+
+// Function for searching a reference in a file
+location recherche(int cle, FILE* F, entete e, Bloc* buffer) {
+    int bi = 1;
+    int bs = e.nbbloc;
+    bool stop = false;
+    char t[4];
+    int cmp = 0;
+    int k = 0;
+    int a, z, d;
+    int inf, sup;
+    int i = 1;
+    int j = 1;
+    bool trouve = false;
+    location l;
+
+    while (bi <= bs && !trouve && !stop) {
+        i = (bi + bs) / 2;
+        fseek(F, (i) * sizeof(Bloc), SEEK_SET);
+        fread(buffer->tab, sizeof(char), sizeof(Bloc), F);
+
+        if(buffer->nb==1)
+        {
+         for (int l = 0; l <= 3; l++) {
+            t[l] = buffer->tab[l];
+            printf("\nle buffer de la recherhe %c :",buffer->tab[l] );
+        }
+        a = ref(t);
+        if (a == cle)
+               {
+                    trouve = true;
+                }
+            l.j=0;
+            l.i=i;
+            l.trouve =trouve;
+
+        }
+     else{
+        for (cmp = 0; cmp < buffer->nb - 1; cmp++) {
+            if (buffer->tab[k] == '#') {
+                cmp++;
+            }
+            k++;
+        }
+
+        for (int l = 0; l <= 3; l++) {
+            t[l] = buffer->tab[l];
+        }
+        a = ref(t);
+
+        for (int l = 0; l <= 3; l++) {
+            t[l] = buffer->tab[k];
+            k++;
+        }
+        z = ref(t);
+
+        if (cle >= a && cle <= z) {
+            inf = 1;
+            sup = buffer->nb;
+            while (inf < sup && !trouve) {
+                j = (inf + sup) / 2;
+                cmp = 1;
+                k = 1;
+                while (cmp < j) {
+                    if (buffer->tab[k] == '#') {
+                        cmp = cmp + 1;
+                    }
+                    k = k + 1;
+                }
+
+                for (int l = 0; l <= 3; l++) {
+                    t[l] = buffer->tab[k];
+                    k = k + 1;
+                }
+
+                d = ref(t);
+
+                if (d == cle) {
+                    trouve = true;
+                } else {
+                    if (cle < d) {
+                        sup = j - 1;
+                    } else {
+                        inf = j + 1;
+                    }
+                }
+            }
+
+            if (inf >= sup) {
+                j = inf;
+            }
+            stop = true;
+        } else {
+            if (cle < a) {
+                bs = i - 1;
+            } else {
+                bi = i + 1;
+            }
+        }
+    }
+
+    if (bi > bs) {
+        i = bi;
+        j = 1;
+    }
+    l.i = i;
+    l.j = j;
+    l.trouve = trouve;
+    }
+    return l;
+}
+
+
+Bloc insertion(FILE* F, Medicament eng, entete* e, Bloc* buffer) {
+    int j = 1;
+    char ch[500];
+    tochar(ch, eng);
+    location l;
+    bool trouve;
+
+    F = fopen("medicaments.dat", "rb+");
+
+    if (e->nbrenrg == 0) {
+        fseek(F, 0, SEEK_SET);
+        fwrite(ch, sizeof(char), strlen(ch), F);
+        for (int k = 0; k <= taillenrg(*buffer, j); k++) {
+            buffer->tab[k] = ch[k];
+
+        }
+        e->nbrenrg++;
+    } else {
+        l = recherche(eng.reference, F, *e, buffer);
+
+        if (!l.trouve) {
+            fseek(F, (l.i) * sizeof(Bloc), SEEK_SET);
+            fread(buffer->tab, sizeof(char), sizeof(Bloc), F);
+
+            while (j <= taillenrg(*buffer, j) && eng.reference > atoi(&buffer->tab[j])) {
+                j++;
+            }
+
+            int t = taillenrg(*buffer, j) - 1;
+            while (t > 0) {
+                buffer->tab[j + t] = buffer->tab[j + t - 1];
+                t--;
+            }
+
+            for (int k = 0; k < strlen(ch); k++) {
+                buffer->tab[j + k] = ch[k];
+
+            }
+
+            fseek(F, (l.i) * sizeof(Bloc), SEEK_SET);
+            fwrite(buffer->tab, sizeof(char), sizeof(Bloc), F);
+            e->nbrenrg++;
+        }
+    }
+
+    fclose(F);
+    return *buffer;
+}
