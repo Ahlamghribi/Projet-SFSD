@@ -1,19 +1,25 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdlib.h>
+
+// Structures for date, location, medicament, bloc, and entete
 
 typedef struct {
     int jour, mois, annee;
 } date;
 
 typedef struct {
+    int i, j;
+    bool trouve;
+} location;
+
+typedef struct {
     char nom[20];
     int qte;
     float prix;
     int reference;
-    char ingredient[30];
-    struct date datefabr, dateexp;
-
+    date datefabr, dateexp;
 } Medicament;
 
 typedef struct {
@@ -24,7 +30,133 @@ typedef struct {
 typedef struct {
     int nbrenrg, nbbloc;
 } entete;
-   
+
+int taillenrg(Bloc buf, int j) {
+    int cmp = 1;
+
+    while (buf.tab[j] != '#') {
+        j++;
+        cmp++;
+    }
+
+    return cmp;
+}
+
+// Function to calculate the size of a bloc
+int taillebloc(Bloc buf) {
+    int j = 1;
+
+    for (int i = 0; i < buf.nb; i++) {
+        j = j + taillenrg(buf, j);
+        j++;
+    }
+
+    return j;
+}
+
+
+// Function to convert Medicament to char array
+void tochar(char ch[500], Medicament med) {
+    int i = 0;
+
+    // Convert reference to string
+    i += sprintf(&ch[i], "%04d$", med.reference);
+
+    // Add medication name
+    strncpy(&ch[i], med.nom, sizeof(med.nom) - 1);
+    i += strlen(med.nom);
+    ch[i] = '$';
+    i++;
+
+    // Convert quantity to string
+    i += sprintf(&ch[i], "%d$", med.qte);
+
+    // Convert price to string
+    i += sprintf(&ch[i], "%.2f$", med.prix);
+
+    // Convert dates to string
+    i += sprintf(&ch[i], "%02d %02d %04d$", med.datefabr.jour, med.datefabr.mois, med.datefabr.annee);
+    i += sprintf(&ch[i], "%02d %02d %04d$", med.dateexp.jour, med.dateexp.mois, med.dateexp.annee);
+
+    // Add end of enregistrement character
+    ch[i] = '#';
+}
+
+// Function to display information from a bloc
+void afficher(Bloc buf, int j) {
+    char ch[500];
+    while (buf.tab[j] != '#') {
+        int i = 0;
+
+        // Display medication name
+        printf("Le nom de medicaments : ");
+        while (buf.tab[j] != '$') {
+            ch[i] = buf.tab[j];
+            j++;
+            i++;
+        }
+        ch[i] = '\0';
+        printf("%s\n", ch);
+        j++;
+
+        // Display quantity
+        i = 0;
+        printf("La quantite de medicaments : ");
+        while (buf.tab[j] != '$') {
+            ch[i] = buf.tab[j];
+            j++;
+            i++;
+        }
+        ch[i] = '\0';
+        printf("%s\n", ch);
+        j++;
+
+        // Display price
+        i = 0;
+        printf("Le prix de medicaments : ");
+        while (buf.tab[j] != '$') {
+            ch[i] = buf.tab[j];
+            j++;
+            i++;
+        }
+        ch[i] = '\0';
+        printf("%s\n", ch);
+        j++;
+
+        // Display date of fabrication
+        i = 0;
+        printf("La date de fabrication (jour mois annee) : ");
+        while (buf.tab[j] != '$') {
+            ch[i] = buf.tab[j];
+            j++;
+            i++;
+        }
+        ch[i] = '\0';
+        printf("%s\n", ch);
+        j++;
+
+        // Display date of expiration
+        i = 0;
+        printf("La date de l'expiration (jour mois annee) : ");
+        while (buf.tab[j] != '$') {
+            ch[i] = buf.tab[j];
+            j++;
+            i++;
+        }
+        ch[i] = '\0';
+        printf("%s\n", ch);
+        printf("\n");
+    }
+}
+
+// Function to extract reference from a string
+int ref(char tab[4]) {
+    int s = 1;
+    s = atoi(tab);
+    printf("\n%d ref", s);
+    return (s);
+}
+
 
 int main() {
     char choix;
@@ -38,36 +170,19 @@ int main() {
     buf.nb = 0;
     int j = 0;
 
-
-    // Assuming a maximum of 1000 entries in the index
-    Index index[1001];
-
-    // Initialize index
-    for (int i = 0; i < 1001; i++) {
-        index[i].cas = 0;
-        index[i].reference = 0;
-        index[i].bloc = 0;
-    }
-
     do {
-        printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-        printf("               Gestion des Medicaments\n");
-        printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-        printf("Veuillez choisir une option :\n");
+        printf("Voulez-vous :\n");
         printf("I - Inserer un medicament\n");
         printf("S - Supprimer un medicament\n");
         printf("R - Rechercher un medicament\n");
         printf("Q - Quitter\n");
-        printf("Votre choix : ");
+        printf("Votre choix :\n ");
         scanf(" %c", &choix);
 
         switch (choix) {
             case 'I':
             case 'i':
-                printf("\n==============================================\n");
-                printf("             Ajout d'un Medicament\n");
-                printf("==============================================\n");
-                printf("Veuillez saisir les informations du medicament :\n");
+                printf("Donnez-moi les informations du medicament :\n");
                 printf("La reference : ");
                 scanf("%d", &med.reference);
                 printf("Le nom : ");
@@ -81,40 +196,29 @@ int main() {
                 printf("La date de l'expiration (jour mois annee) : ");
                 scanf("%d %d %d", &med.dateexp.jour, &med.dateexp.mois, &med.dateexp.annee);
 
-                buf = insertionAvecIndex(fichier, med, &e, &buf, index);
-                buf.nb++;
-                printf("==============================================\n");
+                buf = insertion(fichier, med, &e, &buf);
+                buf.nb = buf.nb + 1;
+                printf("\nle nb %d",buf.nb);
                 break;
 
-
-case 'S':
-case 's':
-    printf("Donnez-moi la reference du medicament que vous voulez supprimer : ");
-    scanf("%d", &reference);
-    if (suppressionAvecIndex(reference, fichier, e, &buf, index)) {
-        printf("Suppression reussie.\n");
-                        printf("==============================================\n");
-
-    } else {
-        printf("La suppression a échoué. Le medicament n'a pas été trouvé.\n");
-    }
-    break;
+            case 'S':
+            case 's':
+                printf("Donnez-moi la reference du medicament que vous voulez supprimer : ");
+                scanf("%d", &reference);
+                buf = Suppression(reference, fichier, e, &buf);
+                break;
 
             case 'R':
             case 'r':
-                printf("\n==============================================\n");
-                printf("            Recherche d'un Medicament\n");
-                printf("==============================================\n");
-                printf("Veuillez saisir la reference du medicament a rechercher : ");
+                printf("Donnez-moi la reference du medicament que vous voulez trouver : ");
                 scanf("%d", &reference);
-                location l = rechercheAvecIndex(reference, fichier, e, &buf, index);
-                if (l.trouve) {
-                    printf("\nLe medicament existe !!\n");
-
+                location l = recherche(reference, fichier, e, &buf);
+                if (l.trouve==true) {
+                    printf("Le medicament existe ");
+                    afficher(buf, j);
                 } else {
-                    printf("\nLe medicament n'existe pas.\n");
+                    printf("Le medicament n'existe pas");
                 }
-                printf("==============================================\n");
                 break;
 
             case 'Q':
@@ -130,3 +234,5 @@ case 's':
     fclose(fichier);
     return 0;
 }
+
+   
