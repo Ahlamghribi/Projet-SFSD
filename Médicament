@@ -1,4 +1,4 @@
-
+// fonction recherche dechotomique version 1
 
 
  void ref (int tab[4])
@@ -155,4 +155,42 @@ int rechercheIndex (int cle,index[1000],entet e)
      }
    }
     return (droite);
+}
+// recherche dechotomique 2
+
+
+Medicament rechercherMedicament(FILE *fichier, int reference) {
+    fseek(fichier, 0, SEEK_SET);
+
+    Entete entete;
+    fread(&entete, sizeof(Entete), 1, fichier);
+
+    Bloc bloc;
+
+    for (int i = 0; i < entete.nbbloc; i++) {
+        fseek(fichier, i * sizeof(Bloc), SEEK_SET);
+        fread(&bloc, sizeof(Bloc), 1, fichier);
+
+        // Utiliser la recherche dichotomique à l'intérieur de chaque bloc
+        int debut = 0;
+        int fin = bloc.nb - 1;
+
+        while (debut <= fin) {
+            int milieu = debut + (fin - debut) / 2;
+
+            if (bloc.enregistrements[milieu].reference == reference) {
+                return bloc.enregistrements[milieu]; // Médicament trouvé
+            }
+
+            if (bloc.enregistrements[milieu].reference < reference) {
+                debut = milieu + 1;
+            } else {
+                fin = milieu - 1;
+            }
+        }
+    }
+
+    // Retourner un médicament vide si la référence n'est pas trouvée
+    Medicament medicamentVide = {"", 0, 0.0, 0, "", {0, 0, 0}, {0, 0, 0}};
+    return medicamentVide;
 }
