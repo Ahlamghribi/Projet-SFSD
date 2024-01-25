@@ -21,7 +21,7 @@ typedef struct {
 // Structure pour représenter un bloc de données
 typedef struct {
     int nb;  // Nombre d'enregistrements dans le bloc
-    Medicament enregistrements[10];  // Ajustez la taille en fonction de vos besoins
+    char enregistrements[500];  // Ajustez la taille en fonction de vos besoins
 } Bloc;
 
 // Structure pour représenter l'entête du fichier
@@ -29,7 +29,6 @@ typedef struct {
     int nbrenrg;  // Nombre total d'enregistrements dans le fichier
     int nbbloc;   // Nombre total de blocs dans le fichier
 } Entete;
-
 
 // Fonction pour calculer la taille d'un enregistrement logique
 int tailleEnregistrement(Medicament med) {
