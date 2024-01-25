@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-// Structures for date, location, medicament, bloc, and entete
+// Structures pour date, localisation, médicament, bloc et entête
 
 typedef struct {
     int jour, mois, annee;
@@ -35,7 +35,7 @@ typedef struct {
     int nbrenrg, nbbloc;
 } entete;
 
-// Function to calculate the size of a record
+// Fonction pour calculer la taille d'un enregistrement
 int taillenrg(Bloc buf, int j) {
     int cmp = 1;
 
@@ -47,7 +47,7 @@ int taillenrg(Bloc buf, int j) {
     return cmp;
 }
 
-// Function to calculate the size of a block
+// Fonction pour calculer la taille d'un bloc
 int taillebloc(Bloc buf) {
     int j = 1;
 
@@ -59,39 +59,41 @@ int taillebloc(Bloc buf) {
     return j;
 }
 
-// Function to convert Medicament to char array
+// Fonction pour convertir un médicament en tableau de caractères
 void tochar(char ch[500], Medicament med) {
     int i = 0;
 
-    // Convert reference to string
+    // Convertir la référence en chaîne de caractères
     i += sprintf(&ch[i], "%04d$", med.reference);
 
-    // Add medication name
+    // Ajouter le nom du médicament
     strncpy(&ch[i], med.nom, sizeof(med.nom) - 1);
     i += strlen(med.nom);
     ch[i] = '$';
     i++;
 
-    // Convert quantity to string
+    // Convertir la quantité en chaîne de caractères
     i += sprintf(&ch[i], "%d$", med.qte);
 
-    // Convert price to string
+    // Convertir le prix en chaîne de caractères
     i += sprintf(&ch[i], "%.2f$", med.prix);
 
-    // Convert dates to string
+    // Convertir les dates en chaînes de caractères
     i += sprintf(&ch[i], "%02d %02d %04d$", med.datefabr.jour, med.datefabr.mois, med.datefabr.annee);
     i += sprintf(&ch[i], "%02d %02d %04d$", med.dateexp.jour, med.dateexp.mois, med.dateexp.annee);
 
-    // Add end of enregistrement character
+    // Ajouter le caractère de fin d'enregistrement
     ch[i] = '#';
 }
+
+// Fonction pour afficher un enregistrement
 void afficher(Bloc buf, int j) {
     char ch[500];
     while (buf.tab[j] != '#') {
         int i = 0;
 
-        // Display medication name
-        printf("Le nom de medicaments : ");
+        // Afficher le nom du médicament
+        printf("Le nom de médicaments : ");
         while (buf.tab[j] != '$') {
             ch[i] = buf.tab[j];
             j++;
@@ -101,9 +103,9 @@ void afficher(Bloc buf, int j) {
         printf("%s\n", ch);
         j++;
 
-        // Display quantity
+        // Afficher la quantité
         i = 0;
-        printf("La quantite de medicaments : ");
+        printf("La quantité de médicaments : ");
         while (buf.tab[j] != '$') {
             ch[i] = buf.tab[j];
             j++;
@@ -113,9 +115,9 @@ void afficher(Bloc buf, int j) {
         printf("%s\n", ch);
         j++;
 
-        // Display price
+        // Afficher le prix
         i = 0;
-        printf("Le prix de medicaments : ");
+        printf("Le prix de médicaments : ");
         while (buf.tab[j] != '$') {
             ch[i] = buf.tab[j];
             j++;
@@ -125,9 +127,9 @@ void afficher(Bloc buf, int j) {
         printf("%s\n", ch);
         j++;
 
-        // Display date of fabrication
+        // Afficher la date de fabrication
         i = 0;
-        printf("La date de fabrication (jour mois annee) : ");
+        printf("La date de fabrication (jour mois année) : ");
         while (buf.tab[j] != '$') {
             ch[i] = buf.tab[j];
             j++;
@@ -137,9 +139,9 @@ void afficher(Bloc buf, int j) {
         printf("%s\n", ch);
         j++;
 
-        // Display date of expiration
+        // Afficher la date d'expiration
         i = 0;
-        printf("La date de l'expiration (jour mois annee) : ");
+        printf("La date de l'expiration (jour mois année) : ");
         while (buf.tab[j] != '$' && buf.tab[j] != '#') {
             ch[i] = buf.tab[j];
             j++;
@@ -155,21 +157,34 @@ void afficher(Bloc buf, int j) {
         printf("\n");
     }
 }
- 
 
-// Function for deleting with index
+// Fonction pour extraire la référence à partir d'une chaîne de caractères
+int ref(char tab[4]) {
+    return atoi(tab);
+}
+
+// Fonction pour effectuer une suppression avec index
 bool suppressionAvecIndex(int reference, FILE* F, entete e, Bloc* buffer, Index* index) {
+    // Déclaration de la structure de localisation
     location l;
+    
+    // Ouverture du fichier binaire pour lecture/écriture
     F = fopen("medicaments.dat", "rb+");
 
+    // Recherche de la référence dans le fichier avec l'index
     l = rechercheAvecIndex(reference, F, e, buffer, index);
 
+    // Initialisation de la variable de suppression
     bool suppressionReussie = false;
 
+    // Si la référence est trouvée dans le fichier
     if (l.trouve) {
+        // Positionnement du curseur au début du bloc dans lequel l'enregistrement à supprimer se trouve
         fseek(F, (l.i - 1) * sizeof(Bloc), SEEK_SET);
+        // Lecture du bloc dans le buffer
         fread(buffer->tab, sizeof(char), sizeof(Bloc), F);
 
+        // Copie des données après l'enregistrement à supprimer pour le supprimer
         int cmp = taillenrg(*buffer, l.j);
         int k = 1;
 
@@ -179,24 +194,31 @@ bool suppressionAvecIndex(int reference, FILE* F, entete e, Bloc* buffer, Index*
             cmp++;
         }
 
+        // Remplissage du reste du bloc avec des caractères '*'
         while (k <= 500) {
             buffer->tab[k] = '*';
             k++;
         }
 
+        // Retour au début du bloc et écriture du bloc modifié dans le fichier
         fseek(F, (l.i - 1) * sizeof(Bloc), SEEK_SET);
         fwrite(buffer->tab, sizeof(char), sizeof(Bloc), F);
 
+        // Décrémentation du nombre total d'enregistrements dans l'entête
         e.nbrenrg--;
 
-        // Update index
+        // Mise à jour de l'index en supprimant l'entrée correspondante
         for (int i = l.j; i <= e.nbrenrg; i++) {
             index[i] = index[i + 1];
         }
 
+        // La suppression est réussie
         suppressionReussie = true;
     }
 
+    // Fermeture du fichier
     fclose(F);
+
+    // Retourne le statut de la suppression
     return suppressionReussie;
 }
