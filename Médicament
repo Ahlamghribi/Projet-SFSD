@@ -26,90 +26,89 @@ typedef struct {
 } entete;
 
 
-
 int main() {
-    char choix;
-    int reference;
-    index I[1000];
-    medicament med;
-    //initialisation de l'entet
-    e entet;
-    e.nbbloc=0
-    e.nbenregistrement=0;
+    FILE *fichier = fopen("medicaments.dat", "rb+");
+    Entete entete;
+    entete.nbrenrg = 0;
+    entete.nbbloc = 0;
 
-    FILE* fichier = fopen("medicaments.dat", "wb+");
-    Bloc buf;   
-    int j = 0;  
-    char ch[500];   
+    Bloc bloc;
+    bloc.nb = 0;
+
+    int choix;
 
     do {
-        printf("Voulez-vous :\n");
-        printf("I - Inserer un medicament\n");
-        printf("S - Supprimer un medicament\n");
-        printf("R - Rechercher un medicament\n");
-        printf("Q - Quitter\n");
-        printf("Votre choix : ");
-        scanf("%c", &choix);
+        printf("\n=======================================\n");
+        printf("            GESTION DES MEDICAMENTS\n");
+        printf("=======================================\n");
+        printf("1. Ajouter un medicament\n");
+        printf("2. Rechercher un medicament\n");
+        printf("3. Supprimer un medicament\n");
+        printf("4. Quitter\n");
+        printf("=======================================\n");
+        printf("Choix: ");
+        scanf("%d", &choix);
 
         switch (choix) {
-            case 'I':
-            case 'i':
-                {
-                    Medicament med;
-                    printf("Donnez-moi les informations du medicament :\n");
-                    printf("Le nom : ");
-                    scanf("%s", med.nom);
-                    printf("La reference : ");
-                    scanf("%d", &med.reference);
-                    printf("La quantite de medicaments : ");
-                    scanf("%d", &med.qte);
-                    printf("Le prix de medicaments : ");
-                    scanf("%f", &med.prix);
-                    printf("La date de fabrication (jour mois annee) : ");
-                    scanf("%d %d %d", &med.datefabr.jour, &med.datefabr.mois, &med.datefabr.annee);
-                    printf("La date de l'expiration (jour mois annee) : ");
-                    scanf("%d %d %d", &med.dateexp.jour, &med.dateexp.mois, &med.dateexp.annee);
-
-                    tochar(ch, med);
-                    inserer(ch, fichier);
-                    buf.nb++;
-                    break;
+            case 1: {
+                // Ajouter un médicament
+                Medicament nouveauMed = creerMedicament();
+                if (ajouterAuBloc(&bloc, nouveauMed)) {
+                    entete.nbrenrg++;
+                    enregistrerBloc(fichier, bloc, &entete);
+                    printf("\nMedicament ajoute avec succes.\n");
+                } else {
+                    // Si le médicament ne peut pas être ajouté au bloc actuel, créer un nouveau bloc
+                    enregistrerBloc(fichier, bloc, &entete);
+                    bloc.nb = 0;
+                    ajouterAuBloc(&bloc, nouveauMed);
+                    entete.nbrenrg++;
+                    enregistrerBloc(fichier, bloc, &entete);
+                    printf("\nMedicament ajoute avec succes.\n");
                 }
-            case 'S':
-            case 's':
-                {
-                    printf("Donnez-moi la reference du medicament que vous voulez supprimer : ");
-                    scanf("%d", &reference);
+                break;
+            }
+            case 2: {
+                // Rechercher un médicament par référence
+                int reference;
+                printf("\nEntrez la reference du medicament: ");
+                scanf("%d", &reference);
 
-                    Suppression(reference, fichier);
-                    break;
-                }
-            case 'R':
-            case 'r':
-                {
-                    printf("Donnez-moi la reference du medicament que vous voulez trouver : ");
-                    scanf("%d", &reference);
+                Medicament resultat = rechercherMedicament(fichier, reference);
 
-                    if (Recherche(reference, "medicaments.dat")) {
-                        printf("Le medicament existe ");
-                        afficher(j);
-                    } else {
-                        printf("Le medicament n'existe pas");
-                    }
-                    break;
+                if (strlen(resultat.nom) > 0) {
+                    printf("\nMedicament trouve :\n");
+                    afficherMedicament(resultat);
+                } else {
+                    printf("\nMedicament non trouve.\n");
                 }
-            case 'Q':
-            case 'q': 
+                break;
+            }
+            case 3: {
+                // Supprimer un médicament par référence
+                int reference;
+                printf("\nEntrez la reference du medicament a supprimer: ");
+                scanf("%d", &reference);
+
+                if (supprimerMedicament(fichier, reference)) {
+                    printf("\nMedicament supprime avec succes.\n");
+                } else {
+                    printf("\nMedicament non trouve.\n");
+                }
+                break;
+            }
+            case 4:
+                printf("\nProgramme termine.\n");
                 break;
             default:
-                printf("Choix invalide. Veuillez choisir parmi les options disponibles.\n");
+                printf("\nChoix invalide. Veuillez reessayer.\n");
+                break;
         }
-
-    } while (choix != 'Q' && choix != 'q');
+    } while (choix != 4);
 
     fclose(fichier);
+
     return 0;
 }
-
 
  
