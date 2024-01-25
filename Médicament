@@ -155,158 +155,59 @@ void afficher(Bloc buf, int j) {
         printf("\n");
     }
 }
-
-// Function to extract reference from a string
-int ref(char tab[4]) {
-    return atoi(tab);
-}
-location rechercheAvecIndexNonDichotomique(int cle, entete e, Index* index) {
+Bloc Suppression(int reference, FILE* F, entete e, Bloc* buffer) {
+    int i, j;
+    bool trouv;
     location l;
-    l.trouve = false;
-
-    for (int i = 0; i < e.nbrenrg; i++) {
-        if (index[i].reference == cle) {
-            l.i = index[i].bloc;
-            l.j = index[i].cas;
-            l.trouve = true;
-            break;
-        }
-    }
-
-    return l;
-}
-
-location rechercheAvecIndex(int cle, FILE* F, entete e, Bloc* buffer, Index* index) {
-    location l;
-    l.trouve = false;
-
-    for (int i = 0; i < e.nbrenrg; i++) {
-        fseek(F, (index[i].bloc - 1) * sizeof(Bloc), SEEK_SET);
-        fread(buffer->tab, sizeof(char), sizeof(Bloc), F);
-
-        for (int j = 0; j < buffer->nb; j++) {
-            int reference;
-            sscanf(&buffer->tab[index[j].cas], "%d", &reference);
-
-            if (reference == cle) {
-                l.i = i + 1;
-                l.j = j + 1;
-                l.trouve = true;
-                return l; // Sortir dès qu'on trouve la référence
-            }
-        }
-    }
-
-    return l; // Si on n'a pas trouvé la référence
-}
-
-
-
-
-Bloc insertionAvecIndex(FILE* F, Medicament eng, entete* e, Bloc* buffer, Index* index) {
-    int j = 1;
-    char ch[500];
-    tochar(ch, eng);
-    location l;
-    bool trouve;
-
     F = fopen("medicaments.dat", "rb+");
 
-    if (e->nbrenrg == 0) {
-        fseek(F, 0, SEEK_SET);
-        fwrite(ch, sizeof(char), strlen(ch), F);
-        for (int k = 0; k <= taillenrg(*buffer, j); k++) {
-            buffer->tab[k] = ch[k];
-        }
-        e->nbrenrg++;
+    l = recherche(reference, F, e, buffer);
 
-        // Update index
-        index[e->nbrenrg].cas = j;
-        index[e->nbrenrg].reference = eng.reference;
-        index[e->nbrenrg].bloc = e->nbrenrg;
+    int cmp = taillenrg(*buffer, j);
+    if (l.trouve) {
+        fseek(F, l.i * sizeof(Bloc), SEEK_SET);
+        fread(buffer->tab, sizeof(char), sizeof(Bloc), F);
 
-    } else {
-        l = rechercheAvecIndex(eng.reference, F, *e, buffer, index);
+        while (!feof(F)) {
+            if (taillebloc(*buffer) + taillenrg(*buffer, j + cmp + 1) - taillenrg(*buffer, j) <= 500) {
+                while (buffer->tab[cmp] != '#') {
+                    buffer->tab[j] = buffer->tab[j + cmp];
+                    j++;
+                }
 
-        if (!l.trouve) {
-            fseek(F, (l.i - 1) * sizeof(Bloc), SEEK_SET);
-            fread(buffer->tab, sizeof(char), sizeof(Bloc), F);
+                while (j <= 500) {
+                    buffer->tab[j] = '*';
+                    j++;
+                }
 
-            while (j <= taillenrg(*buffer, j) && eng.reference > atoi(&buffer->tab[index[j].cas])) {
                 j++;
-            }
+                if (j != j + cmp + 1) {
+                    while (buffer->tab[j + cmp] != '#') {
+                        buffer->tab[j] = buffer->tab[j + cmp];
+                        j++;
+                    }
+                    j++;
+                } else {
+                    fseek(F, (l.i + 1) * sizeof(Bloc), SEEK_SET);
+                    fwrite(buffer->tab, sizeof(char), sizeof(Bloc), F);
 
-            int t = taillenrg(*buffer, j) - 1;
-            while (t > 0) {
-                buffer->tab[j + t] = buffer->tab[j + t - 1];
-                t--;
-            }
+                    while (buffer->tab[j + cmp] != '#') {
+                        buffer->tab[j] = buffer->tab[j + cmp];
+                        j++;
+                    }
 
-            for (int k = 0; k < strlen(ch); k++) {
-                buffer->tab[j + k] = ch[k];
+                    j = j + cmp;
+                }
             }
+            buffer->tab[j + 1] = '#';
 
-            fseek(F, (l.i - 1) * sizeof(Bloc), SEEK_SET);
+            fseek(F, l.i * sizeof(Bloc), SEEK_SET);
             fwrite(buffer->tab, sizeof(char), sizeof(Bloc), F);
-            e->nbrenrg++;
 
-            // Update index
-            for (int k = e->nbrenrg; k >= j + 1; k--) {
-                index[k] = index[k - 1];
-            }
-
-            // Initialize the values for the newly added index entry
-            index[j].cas = 1; // Assuming the reference is the first field in the record
-            index[j].reference = eng.reference;
-            index[j].bloc = l.i;
+            e.nbrenrg--;
         }
     }
 
     fclose(F);
     return *buffer;
-}
-
-
-// Function for deleting with index
-bool suppressionAvecIndex(int reference, FILE* F, entete e, Bloc* buffer, Index* index) {
-    location l;
-    F = fopen("medicaments.dat", "rb+");
-
-    l = rechercheAvecIndex(reference, F, e, buffer, index);
-
-    bool suppressionReussie = false;
-
-    if (l.trouve) {
-        fseek(F, (l.i - 1) * sizeof(Bloc), SEEK_SET);
-        fread(buffer->tab, sizeof(char), sizeof(Bloc), F);
-
-        int cmp = taillenrg(*buffer, l.j);
-        int k = 1;
-
-        while (buffer->tab[k] != '#' && l.j + cmp < buffer->nb) {
-            buffer->tab[k] = buffer->tab[l.j + cmp];
-            k++;
-            cmp++;
-        }
-
-        while (k <= 500) {
-            buffer->tab[k] = '*';
-            k++;
-        }
-
-        fseek(F, (l.i - 1) * sizeof(Bloc), SEEK_SET);
-        fwrite(buffer->tab, sizeof(char), sizeof(Bloc), F);
-
-        e.nbrenrg--;
-
-        // Update index
-        for (int i = l.j; i <= e.nbrenrg; i++) {
-            index[i] = index[i + 1];
-        }
-
-        suppressionReussie = true;
-    }
-
-    fclose(F);
-    return suppressionReussie;
 }
