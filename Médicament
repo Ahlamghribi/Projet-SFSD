@@ -108,3 +108,36 @@ location recherche(int cle, FILE* F, entete e, Bloc* buffer) {
     }
     return l;
 }
+// recherche index 
+
+
+int rechercheIndex (int cle,index[1000],entet e)
+{
+ int  gauche = 0;
+ int  droite = e.nbenreg-1;
+  while ( gauche <= droite)
+   {
+      milieu = (gauche + droite)/2;
+    if (index[milieu].reference == cle)
+    {
+       return (milieu);
+    }
+    else
+     {
+    if (index[milieu].reference > cle)
+        {
+        droite = milieu - 1;
+        }
+    else
+        {
+        gauche = milieu + 1;
+        for (int l = 0; l <= 3; l++) {
+            t[l] = buffer->tab[k];
+            k++;
+        }
+     }
+   }
+    return (droite);
+}
+
+
