@@ -1,252 +1,202 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdlib.h>
 
-// Structure pour représenter une date
+// Structures for date, location, medicament, bloc, and entete
+
 typedef struct {
     int jour, mois, annee;
 } date;
 
-// Structure pour représenter un enregistrement (médicament)
+typedef struct {
+    int i, j;
+    bool trouve;
+} location;
+
 typedef struct {
     char nom[20];
     int qte;
     float prix;
     int reference;
-    char ingredient[30];
     date datefabr, dateexp;
 } Medicament;
 
-// Structure pour représenter un bloc de données
 typedef struct {
-    int nb;  // Nombre d'enregistrements dans le bloc
-    char enregistrements[500];  // Ajustez la taille en fonction de vos besoins
+    char tab[500];
+    int nb;
 } Bloc;
 
-// Structure pour représenter l'entête du fichier
 typedef struct {
-    int nbrenrg;  // Nombre total d'enregistrements dans le fichier
-    int nbbloc;   // Nombre total de blocs dans le fichier
-} Entete;
+    int cas, reference, bloc;
+} Index;
 
-// Fonction pour calculer la taille d'un enregistrement logique
-int tailleEnregistrement(Medicament med) {
-    // Ajustez la taille en fonction de la structure réelle de vos enregistrements
-    return sizeof(char) * 20 + sizeof(int) + sizeof(float) + sizeof(int) + sizeof(char) * 30 + sizeof(date) * 2;
-}
+typedef struct {
+    int nbrenrg, nbbloc;
+} entete;
 
-// Fonction pour calculer la taille d'un bloc
-int tailleBloc(Bloc bloc) {
-    int taille = sizeof(int);  // Taille du champ "nb" dans le bloc
+// Function to calculate the size of a record
+int taillenrg(Bloc buf, int j) {
+    int cmp = 1;
 
-    for (int i = 0; i < bloc.nb; i++) {
-        taille += tailleEnregistrement(bloc.enregistrements[i]);
+    while (buf.tab[j] != '#') {
+        j++;
+        cmp++;
     }
 
-    return taille;
+    return cmp;
 }
 
-// Fonction pour comparer deux références pour la recherche dichotomique
-int comparerReferences(const void *a, const void *b) {
-    return ((Medicament *)a)->reference - ((Medicament *)b)->reference;
-}
+// Function to calculate the size of a block
+int taillebloc(Bloc buf) {
+    int j = 1;
 
- 
-// Fonction pour ajouter un enregistrement à un bloc de manière ordonnée
-bool ajouterAuBloc(Bloc *bloc, Medicament med) {
-    int tailleEnreg = tailleEnregistrement(med);
-
-    if (tailleBloc(*bloc) + tailleEnreg <= 500) {
-        // Insérer l'enregistrement à la bonne position en maintenant l'ordre
-        int position = 0;
-
-        while (position < bloc->nb && comparerReferences(&med, &(bloc->enregistrements[position])) > 0) {
-            position++;
-        }
-
-        // Décaler les enregistrements pour faire de la place pour le nouvel enregistrement
-        for (int i = bloc->nb - 1; i >= position; i--) {
-            bloc->enregistrements[i + 1] = bloc->enregistrements[i];
-        }
-
-        bloc->enregistrements[position] = med;
-        bloc->nb++;
-         int comparerReferences();
-        // Trier le bloc après l'insertion
-        qsort(bloc->enregistrements, bloc->nb, sizeof(Medicament), comparerReferences);
-
-        return true;
+    for (int i = 0; i < buf.nb; i++) {
+        j = j + taillenrg(buf, j);
+        j++;
     }
 
-    return false;
+    return j;
 }
 
-// Fonction pour enregistrer un bloc dans le fichier
-void enregistrerBloc(FILE *fichier, Bloc bloc, Entete *entete) {
-    fseek(fichier, entete->nbbloc * sizeof(Bloc), SEEK_SET);
-    fwrite(&bloc, sizeof(Bloc), 1, fichier);
-
-    entete->nbbloc++;
-}
-
-
-// Fonction pour rechercher un médicament par référence (dichotomique)
-Medicament rechercherMedicament(FILE *fichier, int reference) {
-    fseek(fichier, 0, SEEK_SET);
-
-    Entete entete;
-    fread(&entete, sizeof(Entete), 1, fichier);
-
-    Bloc bloc;
-
-    for (int i = 0; i < entete.nbbloc; i++) {
-        fseek(fichier, i * sizeof(Bloc), SEEK_SET);
-        fread(&bloc, sizeof(Bloc), 1, fichier);
-
-        // Utiliser la recherche dichotomique à l'intérieur de chaque bloc
-        int debut = 0;
-        int fin = bloc.nb - 1;
-
-        while (debut <= fin) {
-            int milieu = debut + (fin - debut) / 2;
-
-            if (bloc.enregistrements[milieu].reference == reference) {
-                return bloc.enregistrements[milieu]; // Médicament trouvé
-            }
-
-            if (bloc.enregistrements[milieu].reference < reference) {
-                debut = milieu + 1;
-            } else {
-                fin = milieu - 1;
-            }
-        }
-    }
-
-    // Retourner un médicament vide si la référence n'est pas trouvée
-    Medicament medicamentVide = {"", 0, 0.0, 0, "", {0, 0, 0}, {0, 0, 0}};
-    return medicamentVide;
-}
-
-// Fonction pour supprimer un médicament par référence
-bool supprimerMedicament(FILE *fichier, int reference) {
-    fseek(fichier, 0, SEEK_SET);
-
-    Entete entete;
-    fread(&entete, sizeof(Entete), 1, fichier);
-
-    Bloc bloc;
-
-    for (int i = 0; i < entete.nbbloc; i++) {
-        fseek(fichier, i * sizeof(Bloc), SEEK_SET);
-        fread(&bloc, sizeof(Bloc), 1, fichier);
-
-        for (int j = 0; j < bloc.nb; j++) {
-            if (bloc.enregistrements[j].reference == reference) {
-                // Supprimer le médicament du bloc
-                for (int k = j; k < bloc.nb - 1; k++) {
-                    bloc.enregistrements[k] = bloc.enregistrements[k + 1];
-                }
-
-                bloc.nb--;
-
-                // Réécrire le bloc modifié dans le fichier
-                fseek(fichier, i * sizeof(Bloc), SEEK_SET);
-                fwrite(&bloc, sizeof(Bloc), 1, fichier);
-
-                // Mettre à jour le nombre total d'enregistrements
-                entete.nbrenrg--;
-
-                // Mettre à jour le nombre total de blocs si le bloc est devenu vide
-                if (bloc.nb == 0) {
-                    entete.nbbloc--;
-                }
-
-                // Réécrire l'entête dans le fichier
-                fseek(fichier, 0, SEEK_SET);
-                fwrite(&entete, sizeof(Entete), 1, fichier);
-
-                return true;
-            }
-        }
-    }
-
-    return false;  // La référence n'a pas été trouvée
-}
- 
-// Fonction pour créer un nouveau médicament
-Medicament creerMedicament() {
-    Medicament med;
-
-    printf("Nom du medicament: ");
-    scanf("%s", med.nom);
-
-    printf("Quantite: ");
-    scanf("%d", &med.qte);
-
-    printf("Prix: ");
-    scanf("%f", &med.prix);
-
-    printf("Reference: ");
-    scanf("%d", &med.reference);
-
-    printf("Ingredient: ");
-    scanf("%s", med.ingredient);
-
-    printf("Date de fabrication (jj mm aaaa): ");
-    scanf("%d %d %d", &med.datefabr.jour, &med.datefabr.mois, &med.datefabr.annee);
-
-    printf("Date d'expiration (jj mm aaaa): ");
-    scanf("%d %d %d", &med.dateexp.jour, &med.dateexp.mois, &med.dateexp.annee);
-
-    return med;
-}
-
-void afficherMedicament(Medicament med) {
-    printf("Nom: %s\n", med.nom);
-    printf("Quantite: %d\n", med.qte);
-    printf("Prix: %.2f\n", med.prix);
-    printf("Reference: %d\n", med.reference);
-    printf("Ingredient: %s\n", med.ingredient);
-    printf("Date de fabrication: %02d/%02d/%04d\n", med.datefabr.jour, med.datefabr.mois, med.datefabr.annee);
-    printf("Date d'expiration: %02d/%02d/%04d\n", med.dateexp.jour, med.dateexp.mois, med.dateexp.annee);
-}
-void tochar(char ch[500], Medicament med)
-{
+// Function to convert Medicament to char array
+void tochar(char ch[500], Medicament med) {
     int i = 0;
 
-    for (int j = 0; j < sizeof(med.nom); j++)
-    {
-        ch[i] = med.nom[j];
-        i++;
-    }
+    // Convert reference to string
+    i += sprintf(&ch[i], "%04d$", med.reference);
+
+    // Add medication name
+    strncpy(&ch[i], med.nom, sizeof(med.nom) - 1);
+    i += strlen(med.nom);
     ch[i] = '$';
     i++;
 
-    sprintf(&ch[i], "%d", med.qte);
-    i =i+ snprintf(NULL, 0, "%d", med.qte);
+    // Convert quantity to string
+    i += sprintf(&ch[i], "%d$", med.qte);
 
-    ch[i] = '$';
-    i++;
+    // Convert price to string
+    i += sprintf(&ch[i], "%.2f$", med.prix);
 
-    sprintf(&ch[i], "%d", med.reference);
-    i += snprintf(NULL, 0, "%d", med.reference);
-    ch[i] = '$';
-    i++;
-    sprintf(&ch[i], "%f", med.prix);
-    i += snprintf(NULL, 0, "%f", med.prix);
-    ch[i] = '$';
-    i++;
+    // Convert dates to string
+    i += sprintf(&ch[i], "%02d %02d %04d$", med.datefabr.jour, med.datefabr.mois, med.datefabr.annee);
+    i += sprintf(&ch[i], "%02d %02d %04d$", med.dateexp.jour, med.dateexp.mois, med.dateexp.annee);
 
-    sprintf(&ch[i], "%d %d %d", med.datefabr.jour, med.datefabr.mois, med.datefabr.annee);
-    i += snprintf(NULL, 0, "%d %d %d", med.datefabr.jour, med.datefabr.mois, med.datefabr.annee);
-    ch[i] = '$';
-    i++;
-
-    sprintf(&ch[i], "%d %d %d", med.dateexp.jour, med.dateexp.mois, med.dateexp.annee);
-    i += snprintf(NULL, 0, "%d %d %d", med.dateexp.jour, med.dateexp.mois, med.dateexp.annee);
-    ch[i] = '$';
-    i++;
-
+    // Add end of enregistrement character
     ch[i] = '#';
+}
+void afficher(Bloc buf, int j) {
+    char ch[500];
+    while (buf.tab[j] != '#') {
+        int i = 0;
+
+        // Display medication name
+        printf("Le nom de medicaments : ");
+        while (buf.tab[j] != '$') {
+            ch[i] = buf.tab[j];
+            j++;
+            i++;
+        }
+        ch[i] = '\0';
+        printf("%s\n", ch);
+        j++;
+
+        // Display quantity
+        i = 0;
+        printf("La quantite de medicaments : ");
+        while (buf.tab[j] != '$') {
+            ch[i] = buf.tab[j];
+            j++;
+            i++;
+        }
+        ch[i] = '\0';
+        printf("%s\n", ch);
+        j++;
+
+        // Display price
+        i = 0;
+        printf("Le prix de medicaments : ");
+        while (buf.tab[j] != '$') {
+            ch[i] = buf.tab[j];
+            j++;
+            i++;
+        }
+        ch[i] = '\0';
+        printf("%s\n", ch);
+        j++;
+
+        // Display date of fabrication
+        i = 0;
+        printf("La date de fabrication (jour mois annee) : ");
+        while (buf.tab[j] != '$') {
+            ch[i] = buf.tab[j];
+            j++;
+            i++;
+        }
+        ch[i] = '\0';
+        printf("%s\n", ch);
+        j++;
+
+        // Display date of expiration
+        i = 0;
+        printf("La date de l'expiration (jour mois annee) : ");
+        while (buf.tab[j] != '$' && buf.tab[j] != '#') {
+            ch[i] = buf.tab[j];
+            j++;
+            i++;
+        }
+        ch[i] = '\0';
+        printf("%s\n", ch);
+
+        if (buf.tab[j] == '$') {
+            j++;
+        }
+
+        printf("\n");
+    }
+}
+ 
+
+// Function for deleting with index
+bool suppressionAvecIndex(int reference, FILE* F, entete e, Bloc* buffer, Index* index) {
+    location l;
+    F = fopen("medicaments.dat", "rb+");
+
+    l = rechercheAvecIndex(reference, F, e, buffer, index);
+
+    bool suppressionReussie = false;
+
+    if (l.trouve) {
+        fseek(F, (l.i - 1) * sizeof(Bloc), SEEK_SET);
+        fread(buffer->tab, sizeof(char), sizeof(Bloc), F);
+
+        int cmp = taillenrg(*buffer, l.j);
+        int k = 1;
+
+        while (buffer->tab[k] != '#' && l.j + cmp < buffer->nb) {
+            buffer->tab[k] = buffer->tab[l.j + cmp];
+            k++;
+            cmp++;
+        }
+
+        while (k <= 500) {
+            buffer->tab[k] = '*';
+            k++;
+        }
+
+        fseek(F, (l.i - 1) * sizeof(Bloc), SEEK_SET);
+        fwrite(buffer->tab, sizeof(char), sizeof(Bloc), F);
+
+        e.nbrenrg--;
+
+        // Update index
+        for (int i = l.j; i <= e.nbrenrg; i++) {
+            index[i] = index[i + 1];
+        }
+
+        suppressionReussie = true;
+    }
+
+    fclose(F);
+    return suppressionReussie;
 }
