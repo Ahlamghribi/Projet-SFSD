@@ -25,90 +25,101 @@ typedef struct {
     int nbrenrg, nbbloc;
 } entete;
 
-
 int main() {
-    FILE *fichier = fopen("medicaments.dat", "rb+");
-    Entete entete;
-    entete.nbrenrg = 0;
-    entete.nbbloc = 0;
+    char choix;
+    int reference;
+    Medicament med;
+    entete e;
+    e.nbbloc = 1;
+    e.nbrenrg = 0;
+    FILE* fichier = fopen("medicaments.dat", "rb+");
+    Bloc buf;
+    buf.nb = 0;
+    int j = 0;
 
-    Bloc bloc;
-    bloc.nb = 0;
-
-    int choix;
+    // Supposant un maximum de 1000 entrées dans l'index
+    Index index[1001];
 
     do {
-        printf("\n=======================================\n");
-        printf("            GESTION DES MEDICAMENTS\n");
-        printf("=======================================\n");
-        printf("1. Ajouter un medicament\n");
-        printf("2. Rechercher un medicament\n");
-        printf("3. Supprimer un medicament\n");
-        printf("4. Quitter\n");
-        printf("=======================================\n");
-        printf("Choix: ");
-        scanf("%d", &choix);
+        printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+        printf("               Gestion des Médicaments\n");
+        printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+        printf("Veuillez choisir une option :\n");
+        printf("I - Insérer un médicament\n");
+        printf("S - Supprimer un médicament\n");
+        printf("R - Rechercher un médicament\n");
+        printf("Q - Quitter\n");
+        printf("Votre choix : ");
+        scanf(" %c", &choix);
 
         switch (choix) {
-            case 1: {
-                // Ajouter un médicament
-                Medicament nouveauMed = creerMedicament();
-                if (ajouterAuBloc(&bloc, nouveauMed)) {
-                    entete.nbrenrg++;
-                    enregistrerBloc(fichier, bloc, &entete);
-                    printf("\nMedicament ajoute avec succes.\n");
-                } else {
-                    // Si le médicament ne peut pas être ajouté au bloc actuel, créer un nouveau bloc
-                    enregistrerBloc(fichier, bloc, &entete);
-                    bloc.nb = 0;
-                    ajouterAuBloc(&bloc, nouveauMed);
-                    entete.nbrenrg++;
-                    enregistrerBloc(fichier, bloc, &entete);
-                    printf("\nMedicament ajoute avec succes.\n");
-                }
+            case 'I':
+            case 'i':
+                printf("\n==============================================\n");
+                printf("             Ajout d'un Médicament\n");
+                printf("==============================================\n");
+                printf("Veuillez saisir les informations du médicament :\n");
+                printf("La référence : ");
+                scanf("%d", &med.reference);
+                printf("Le nom : ");
+                scanf("%s", med.nom);
+                printf("La quantité de médicaments : ");
+                scanf("%d", &med.qte);
+                printf("Le prix de médicaments : ");
+                scanf("%f", &med.prix);
+                printf("La date de fabrication (jour mois année) : ");
+                scanf("%d %d %d", &med.datefabr.jour, &med.datefabr.mois, &med.datefabr.annee);
+                printf("La date de l'expiration (jour mois année) : ");
+                scanf("%d %d %d", &med.dateexp.jour, &med.dateexp.mois, &med.dateexp.annee);
+
+                // Insertion avec index
+                buf = insertionAvecIndex(fichier, med, &e, &buf, index);
+                buf.nb++;
+                printf("==============================================\n");
                 break;
-            }
-            case 2: {
-                // Rechercher un médicament par référence
-                int reference;
-                printf("\nEntrez la reference du medicament: ");
+
+            case 'S':
+            case 's':
+                printf("Donnez-moi la référence du médicament que vous voulez supprimer : ");
                 scanf("%d", &reference);
-
-                Medicament resultat = rechercherMedicament(fichier, reference);
-
-                if (strlen(resultat.nom) > 0) {
-                    printf("\nMedicament trouve :\n");
-                    afficherMedicament(resultat);
+                // Suppression avec index
+                if (suppressionAvecIndex(reference, fichier, e, &buf, index)) {
+                    printf("Suppression réussie.\n");
+                    printf("==============================================\n");
                 } else {
-                    printf("\nMedicament non trouve.\n");
+                    printf("La suppression a échoué. Le médicament n'a pas été trouvé.\n");
                 }
                 break;
-            }
-            case 3: {
-                // Supprimer un médicament par référence
-                int reference;
-                printf("\nEntrez la reference du medicament a supprimer: ");
+
+            case 'R':
+            case 'r':
+                printf("\n==============================================\n");
+                printf("            Recherche d'un Médicament\n");
+                printf("==============================================\n");
+                printf("Veuillez saisir la référence du médicament à rechercher : ");
                 scanf("%d", &reference);
-
-                if (supprimerMedicament(fichier, reference)) {
-                    printf("\nMedicament supprime avec succes.\n");
+                // Recherche avec index
+                location l = rechercheAvecIndex(reference, fichier, e, &buf, index);
+                if (l.trouve) {
+                    printf("\nLe médicament existe !!\n");
                 } else {
-                    printf("\nMedicament non trouve.\n");
+                    printf("\nLe médicament n'existe pas.\n");
                 }
+                printf("==============================================\n");
                 break;
-            }
-            case 4:
-                printf("\nProgramme termine.\n");
+
+            case 'Q':
+            case 'q':
                 break;
+
             default:
-                printf("\nChoix invalide. Veuillez reessayer.\n");
-                break;
+                printf("Choix invalide. Veuillez choisir parmi les options disponibles.\n");
         }
-    } while (choix != 4);
 
+    } while (choix != 'Q' && choix != 'q');
+
+    // Fermeture du fichier
     fclose(fichier);
 
     return 0;
 }
-
- 
