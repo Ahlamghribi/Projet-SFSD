@@ -54,6 +54,34 @@ int comparerReferences(const void *a, const void *b) {
 }
 
  
+// Fonction pour ajouter un enregistrement à un bloc de manière ordonnée
+bool ajouterAuBloc(Bloc *bloc, Medicament med) {
+    int tailleEnreg = tailleEnregistrement(med);
+
+    if (tailleBloc(*bloc) + tailleEnreg <= 500) {
+        // Insérer l'enregistrement à la bonne position en maintenant l'ordre
+        int position = 0;
+
+        while (position < bloc->nb && comparerReferences(&med, &(bloc->enregistrements[position])) > 0) {
+            position++;
+        }
+
+        // Décaler les enregistrements pour faire de la place pour le nouvel enregistrement
+        for (int i = bloc->nb - 1; i >= position; i--) {
+            bloc->enregistrements[i + 1] = bloc->enregistrements[i];
+        }
+
+        bloc->enregistrements[position] = med;
+        bloc->nb++;
+         int comparerReferences();
+        // Trier le bloc après l'insertion
+        qsort(bloc->enregistrements, bloc->nb, sizeof(Medicament), comparerReferences);
+
+        return true;
+    }
+
+    return false;
+}
 
 void Suppression(int reference,FILE* fichier,entete e) { 
     bool trouv;
